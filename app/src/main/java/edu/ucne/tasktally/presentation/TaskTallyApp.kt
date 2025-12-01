@@ -1,0 +1,60 @@
+package edu.ucne.tasktally.presentation
+
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.padding
+import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
+import androidx.compose.material3.Scaffold
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.tooling.preview.Preview
+import androidx.navigation.compose.currentBackStackEntryAsState
+import androidx.navigation.compose.rememberNavController
+import edu.ucne.tasktally.presentation.componentes.BottomNavBar.BottomNavBar
+import edu.ucne.tasktally.presentation.componentes.TopAppBar
+import edu.ucne.tasktally.presentation.navigation.Screen
+import edu.ucne.tasktally.presentation.navigation.TaskTallyNavHost
+import edu.ucne.tasktally.ui.theme.TaskTallyTheme
+
+@OptIn(ExperimentalMaterial3ExpressiveApi::class)
+@Composable
+fun TaskTallyApp() {
+    val navController = rememberNavController()
+    val navBackStackEntry by navController.currentBackStackEntryAsState()
+    val currentRoute = navBackStackEntry?.destination?.route
+
+    val title = when (currentRoute) {
+        Screen.Tareas::class.qualifiedName -> "Tareas"
+        Screen.Tienda::class.qualifiedName -> "Tienda"
+        Screen.Perfil::class.qualifiedName -> "Perfil"
+        Screen.Login::class.qualifiedName -> "Iniciar Sesión"
+        else -> "TaskTally"
+    }
+
+    Scaffold(
+        modifier = Modifier.fillMaxSize(),
+        topBar = {
+            if (currentRoute != Screen.Login::class.qualifiedName) {
+                TopAppBar(title = title)
+            }
+        },
+        bottomBar = {
+            if (currentRoute != Screen.Login::class.qualifiedName) {
+                BottomNavBar(navController = navController)
+            }
+        }
+    ) { innerPadding ->
+        Box(modifier = Modifier.padding(innerPadding)) {
+            TaskTallyNavHost(navHostController = navController)
+        }
+    }
+}
+
+@Preview(showBackground = true)
+@Composable
+fun TaskTallyAppPreview() {
+    TaskTallyTheme {
+        TaskTallyApp()
+    }
+}
