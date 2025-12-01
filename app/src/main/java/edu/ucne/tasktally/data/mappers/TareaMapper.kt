@@ -6,25 +6,31 @@ import edu.ucne.tasktally.domain.models.Tarea
 fun TareaEntity.toDomain(): Tarea {
     return Tarea(
         tareaId = tareaId,
+        createdBy = createdBy,
+        zonaId = zonaId,
+        estadoId = estadoId,
         titulo = titulo,
         descripcion = descripcion,
-        estadoId = estadoId,
         puntos = puntos,
-        fechaCreacion = fechaCreacion,
-        fechaVencimiento = fechaVencimiento,
-        recurrente = recurrente
+        diaAsignada = diaAsignada,
+        recurrente = recurrente,
+        imgVector = imgVector,
+        fechaCreacion = fechaCreacion
     )
 }
 
 fun Tarea.toEntity(): TareaEntity {
     return TareaEntity(
         tareaId = tareaId,
+        createdBy = createdBy,
+        zonaId = zonaId,
+        estadoId = estadoId,
         titulo = titulo,
         descripcion = descripcion,
-        estadoId = estadoId,
         puntos = puntos,
-        fechaCreacion = fechaCreacion,
-        fechaVencimiento = fechaVencimiento,
-        recurrente = recurrente
+        diaAsignada = diaAsignada,
+        recurrente = recurrente,
+        imgVector = imgVector,
+        fechaCreacion = fechaCreacion
     )
 }
