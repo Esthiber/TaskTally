@@ -28,7 +28,7 @@ import edu.ucne.tasktally.ui.theme.TaskTallyTheme
 fun ListTareaScreen(
     viewModel: ListTareaViewModel = hiltViewModel(),
     onNavigateToCreate: () -> Unit = {},
-    onNavigateToEdit: (Int) -> Unit = {},
+    onNavigateToEdit: (String) -> Unit = {},
     mentorName: String = "Mentor"
 ) {
     val state by viewModel.state.collectAsStateWithLifecycle()
@@ -141,8 +141,12 @@ fun ListTareaBody(
                             titulo = tarea.titulo,
                             puntos = tarea.puntos.toInt(),
                             imageName = tarea.imgVector,
-                          onEditClick = { onEvent(ListTareaUiEvent.Edit(tarea.id)) },
-                            onDeleteClick = { onEvent(ListTareaUiEvent.Delete(tarea.id)) }
+                          onEditClick = {
+//                              onEvent(ListTareaUiEvent.Edit(tarea.id))
+                                        },
+                            onDeleteClick = {
+//                                onEvent(ListTareaUiEvent.Delete(tarea.id))
+                            }
                         )
                     }
                 }
@@ -192,7 +196,7 @@ fun ListTareaScreenPreview() {
                         titulo = "Barrer la casa",
                         descripcion = "Barrer todas las habitaciones",
                         puntos = 100.0,
-                        diaAsignada = null,
+//                        diaAsignada = null,
                         diaAsignada = "2025-12-02",
                         imgVector = null,
                         isPendingPost = false,

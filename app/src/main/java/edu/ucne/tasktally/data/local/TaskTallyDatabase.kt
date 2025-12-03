@@ -6,6 +6,7 @@ import edu.ucne.tasktally.data.local.DAOs.GemaDao
 import edu.ucne.tasktally.data.local.DAOs.MentorDao
 import edu.ucne.tasktally.data.local.DAOs.RecompensaDao
 import edu.ucne.tasktally.data.local.DAOs.TareaDao
+import edu.ucne.tasktally.data.local.DAOs.UsuarioDao
 import edu.ucne.tasktally.data.local.DAOs.ZonaDao
 import edu.ucne.tasktally.data.local.entidades.GemaEntity
 import edu.ucne.tasktally.data.local.entidades.MentorEntity
@@ -27,6 +28,7 @@ import edu.ucne.tasktally.data.local.entidades.ZonaEntity
     exportSchema = false
 )
 abstract class TaskTallyDatabase : RoomDatabase() {
+    abstract fun usuarioDao(): UsuarioDao
     abstract fun gemaDao(): GemaDao
     abstract fun mentorDao(): MentorDao
     abstract fun zonaDao(): ZonaDao
