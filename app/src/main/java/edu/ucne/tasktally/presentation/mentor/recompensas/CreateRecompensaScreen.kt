@@ -116,7 +116,8 @@ fun CreateRecompensaBody(
             modifier = Modifier
                 .fillMaxSize()
                 .verticalScroll(rememberScrollState())
-                .padding(horizontal = 24.dp, vertical = 16.dp),
+                .padding(horizontal = 24.dp)
+                .padding(top = 16.dp, bottom = 100.dp),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
             Text(
@@ -183,7 +184,7 @@ fun CreateRecompensaBody(
                 )
             )
 
-            Spacer(modifier = Modifier.height(32.dp))
+            Spacer(modifier = Modifier.height(24.dp))
 
             ImageSelectorBox(
                 selectedImage = state.imgVector,
