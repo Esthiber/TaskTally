@@ -2,6 +2,7 @@ package edu.ucne.tasktally.data.local.entidades
 
 import androidx.room.Entity
 import androidx.room.ForeignKey
+import androidx.room.Index
 import androidx.room.PrimaryKey
 
 @Entity(
@@ -9,17 +10,24 @@ import androidx.room.PrimaryKey
     foreignKeys = [
         ForeignKey(
             entity = UsuarioEntity::class,
-            parentColumns = ["remoteId"],
+            parentColumns = ["userId"],
             childColumns = ["userId"],
             onDelete = ForeignKey.CASCADE
+        ),
+        ForeignKey(
+            entity = UserInfoEntity::class,
+            parentColumns = ["userInfoId"],
+            childColumns = ["userInfoId"],
+            onDelete = ForeignKey.CASCADE
         )
-    ]
+    ],
+    indices = [Index("userId"),Index("userInfoId")]
 )
 data class GemaEntity(
     @PrimaryKey(autoGenerate = true)
     val gemaId: Int = 0,
     val userId: Int,
-    val userInfoId: Int?,
+    val userInfoId: Int,
     val puntosActuales: Double,
     val puntosTotales: Double
 )

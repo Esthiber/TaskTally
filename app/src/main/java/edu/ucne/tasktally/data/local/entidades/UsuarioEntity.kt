@@ -5,18 +5,10 @@ import androidx.room.Index
 import androidx.room.PrimaryKey
 import java.util.UUID
 
-@Entity(
-    tableName = "usuarios",
-    indices = [
-        Index(value = ["userName"], unique = true),
-        Index(value = ["remoteId"]),
-        Index(value = ["isPendingCreate"])
-    ]
-)
-data class UsuarioEntity (
-    @PrimaryKey val id: String = UUID.randomUUID().toString(),
-    val remoteId: Int? = null,
+@Entity(tableName = "usuarios")
+data class UsuarioEntity(
+    @PrimaryKey val userId: Int,
     val userName: String,
     val password: String,
-    val isPendingCreate: Boolean = false,
+    val email: String
 )

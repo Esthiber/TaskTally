@@ -2,6 +2,7 @@ package edu.ucne.tasktally.data.local.entidades
 
 import androidx.room.Entity
 import androidx.room.ForeignKey
+import androidx.room.Index
 import androidx.room.PrimaryKey
 
 @Entity(
@@ -13,7 +14,8 @@ import androidx.room.PrimaryKey
             childColumns = ["mentorId"],
             onDelete = ForeignKey.CASCADE
         )
-    ]
+    ],
+    indices = [Index("mentorId")]
 )
 data class ZonaEntity(
     @PrimaryKey(autoGenerate = true)

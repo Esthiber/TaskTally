@@ -29,18 +29,22 @@ fun TaskTallyApp() {
         Screen.Tienda::class.qualifiedName -> "Tienda"
         Screen.Perfil::class.qualifiedName -> "Perfil"
         Screen.Login::class.qualifiedName -> "Iniciar Sesión"
+        Screen.Register::class.qualifiedName -> "Registrarse"
         else -> "TaskTally"
     }
+
+    val isAuthScreen = currentRoute == Screen.Login::class.qualifiedName ||
+                       currentRoute == Screen.Register::class.qualifiedName
 
     Scaffold(
         modifier = Modifier.fillMaxSize(),
         topBar = {
-            if (currentRoute != Screen.Login::class.qualifiedName) {
+            if (!isAuthScreen) {
                 TopAppBar(title = title)
             }
         },
         bottomBar = {
-            if (currentRoute != Screen.Login::class.qualifiedName) {
+            if (!isAuthScreen) {
                 BottomNavBar(navController = navController)
             }
         }

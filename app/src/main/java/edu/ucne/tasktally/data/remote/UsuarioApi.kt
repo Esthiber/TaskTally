@@ -1,7 +1,7 @@
 package edu.ucne.tasktally.data.remote
 
-import edu.ucne.tasktally.data.remote.usuarios.UsuarioRequest
-import edu.ucne.tasktally.data.remote.usuarios.UsuarioResponse
+import edu.ucne.tasktally.data.remote.DTOs.usuarios.UsuarioRequest
+import edu.ucne.tasktally.data.remote.DTOs.usuarios.UsuarioResponse
 import retrofit2.Response
 import retrofit2.http.Body
 import retrofit2.http.GET

@@ -69,6 +69,9 @@ dependencies {
     annotationProcessor("androidx.room:room-compiler:2.6.1")
     ksp("androidx.room:room-compiler:2.6.1")
 
+    //DataStore for secure preferences
+    implementation("androidx.datastore:datastore-preferences:1.0.0")
+
     implementation("androidx.compose.foundation:foundation:1.5.0")
 
     // Material 3
