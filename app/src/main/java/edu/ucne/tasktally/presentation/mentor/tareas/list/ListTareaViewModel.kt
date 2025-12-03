@@ -4,7 +4,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
 import edu.ucne.tasktally.domain.usecases.mentor.DeleteTareaUseCase
-import edu.ucne.tasktally.domain.usecases.mentor.ObserveTareasUseCase
+import edu.ucne.tasktally.domain.usecases.mentor.ObserveAllTareasUseCase
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -15,7 +15,7 @@ import javax.inject.Inject
 
 @HiltViewModel
 class ListTareaViewModel @Inject constructor(
-    private val observeTareasUseCase: ObserveTareasUseCase,
+    private val observeAllTareasUseCase: ObserveAllTareasUseCase,
     private val deleteTareaUseCase: DeleteTareaUseCase
 ) : ViewModel() {
 
@@ -38,7 +38,7 @@ class ListTareaViewModel @Inject constructor(
 
     private fun observe() {
         viewModelScope.launch {
-            observeTareasUseCase().collectLatest { list ->
+            observeAllTareasUseCase().collectLatest { list ->
                 _state.update {
                     it.copy(
                         isLoading = false,

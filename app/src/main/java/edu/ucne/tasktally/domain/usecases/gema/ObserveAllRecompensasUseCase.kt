@@ -5,7 +5,7 @@ import edu.ucne.tasktally.domain.repository.RecompensaRepository
 import kotlinx.coroutines.flow.Flow
 import javax.inject.Inject
 
-class ObserveRecompensasDispoUseCase @Inject constructor(
+class ObserveAllRecompensasUseCase @Inject constructor(
     private val recompensaRepository: RecompensaRepository
 ) {
     operator fun invoke(): Flow<List<Recompensa>> {
