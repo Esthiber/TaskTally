@@ -24,13 +24,22 @@ fun TaskTallyApp() {
     val navBackStackEntry by navController.currentBackStackEntryAsState()
     val currentRoute = navBackStackEntry?.destination?.route
 
+    // TODO: Esta logica debe venir de un ViewModel/Repository que maneje el estado del usuario
+    val isMentor = currentRoute?.contains("Mentor") == true
+
     val title = when (currentRoute) {
-        Screen.Tareas::class.qualifiedName -> "Tareas"
+        Screen.Tareas::class.qualifiedName -> "Mis Tareas"
         Screen.Tienda::class.qualifiedName -> "Tienda"
         Screen.Perfil::class.qualifiedName -> "Perfil"
+        Screen.MentorTareas::class.qualifiedName -> "Gestionar Tareas"
+        Screen.MentorTienda::class.qualifiedName -> "Gestionar Recompensas"
+        Screen.MentorPerfil::class.qualifiedName -> "Perfil Mentor"
         Screen.Login::class.qualifiedName -> "Iniciar Sesión"
         Screen.Register::class.qualifiedName -> "Registrarse"
         Screen.CreateTarea::class.qualifiedName -> "Crear Tareas"
+        Screen.CreateRecompensa::class.qualifiedName -> "Crear Recompensa"
+        Screen.ListTareas::class.qualifiedName -> "Lista de Tareas"
+        Screen.ListaRecompensas::class.qualifiedName -> "Lista de Recompensas"
         else -> "TaskTally"
     }
 
@@ -38,7 +47,10 @@ fun TaskTallyApp() {
             currentRoute == Screen.Register::class.qualifiedName
 
     val showBottomBar = !isAuthScreen &&
-            currentRoute != Screen.CreateTarea::class.qualifiedName
+            currentRoute != Screen.CreateTarea::class.qualifiedName &&
+            currentRoute != Screen.CreateRecompensa::class.qualifiedName &&
+            currentRoute != Screen.ListTareas::class.qualifiedName &&
+            currentRoute != Screen.ListaRecompensas::class.qualifiedName
 
     Scaffold(
         modifier = Modifier.fillMaxSize(),
@@ -49,7 +61,10 @@ fun TaskTallyApp() {
         },
         bottomBar = {
             if (showBottomBar) {
-                BottomNavBar(navController = navController)
+                BottomNavBar(
+                    navController = navController,
+                    isMentor = isMentor
+                )
             }
         }
     ) { innerPadding ->

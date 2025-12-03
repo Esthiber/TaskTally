@@ -17,7 +17,8 @@ import edu.ucne.tasktally.presentation.navigation.Screen
 @ExperimentalMaterial3ExpressiveApi
 @Composable
 fun BottomNavBar(
-    navController: NavController
+    navController: NavController,
+    isMentor: Boolean = false
 ) {
     val navBackStackEntry by navController.currentBackStackEntryAsState()
     val currentRoute = navBackStackEntry?.destination?.route
@@ -33,28 +34,54 @@ fun BottomNavBar(
     }
 
     FlexibleBottomAppBar {
-        BottomNavItem(
-            label = "Tareas",
-            icon = Icons.Default.FormatListNumberedRtl,
-            currentRoute = currentRoute,
-            navigateTo = navigateTo,
-            route = Screen.Tareas
-        )
+        if (isMentor) {
+            BottomNavItem(
+                label = "Tareas",
+                icon = Icons.Default.FormatListNumberedRtl,
+                currentRoute = currentRoute,
+                navigateTo = navigateTo,
+                route = Screen.MentorTareas
+            )
 
-        BottomNavItem(
-            label = "Tienda",
-            icon = Icons.Default.ShoppingCart,
-            currentRoute = currentRoute,
-            navigateTo = navigateTo,
-            route = Screen.Tienda
-        )
+            BottomNavItem(
+                label = "Tienda",
+                icon = Icons.Default.ShoppingCart,
+                currentRoute = currentRoute,
+                navigateTo = navigateTo,
+                route = Screen.MentorTienda
+            )
 
-        BottomNavItem(
-            label = "Perfil",
-            icon = Icons.Default.AccountCircle,
-            currentRoute = currentRoute,
-            navigateTo = navigateTo,
-            route = Screen.Perfil
-        )
+            BottomNavItem(
+                label = "Perfil",
+                icon = Icons.Default.AccountCircle,
+                currentRoute = currentRoute,
+                navigateTo = navigateTo,
+                route = Screen.MentorPerfil
+            )
+        } else {
+            BottomNavItem(
+                label = "Tareas",
+                icon = Icons.Default.FormatListNumberedRtl,
+                currentRoute = currentRoute,
+                navigateTo = navigateTo,
+                route = Screen.Tareas
+            )
+
+            BottomNavItem(
+                label = "Tienda",
+                icon = Icons.Default.ShoppingCart,
+                currentRoute = currentRoute,
+                navigateTo = navigateTo,
+                route = Screen.Tienda
+            )
+
+            BottomNavItem(
+                label = "Perfil",
+                icon = Icons.Default.AccountCircle,
+                currentRoute = currentRoute,
+                navigateTo = navigateTo,
+                route = Screen.Perfil
+            )
+        }
     }
 }

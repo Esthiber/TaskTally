@@ -30,4 +30,13 @@ sealed interface Screen {
     @Serializable
     data object ListaRecompensas : Screen
 
+    @Serializable
+    data object MentorTareas : Screen
+
+    @Serializable
+    data object MentorTienda : Screen
+
+    @Serializable
+    data object MentorPerfil : Screen
+
 }

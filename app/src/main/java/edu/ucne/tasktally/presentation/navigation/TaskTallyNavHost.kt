@@ -43,8 +43,8 @@ fun TaskTallyNavHost(
     NavHost(
         navController = navHostController,
         // TODO: descomentar el logged
-        // startDestination = if (isLoggedIn) Screen.Tareas else Screen.Login
-        startDestination = Screen.ListaRecompensas
+         startDestination = if (isLoggedIn) Screen.Tareas else Screen.Login
+//        startDestination = Screen.MentorTareas
     ) {
         composable<Screen.Login> {
             LoginScreen(
@@ -121,6 +121,56 @@ fun TaskTallyNavHost(
                     println("Editar recompensa: $recompensaId")
                 },
                 mentorName = "Mentor"
+            )
+        }
+
+
+        composable<Screen.MentorTareas> {
+            ListTareaScreen(
+                onNavigateToCreate = {
+                    navHostController.navigate(Screen.CreateTarea)
+                },
+                onNavigateToEdit = { tareaId ->
+                    // TODO: implementar edit para mentor
+                    println("Mentor editando tarea: $tareaId")
+                },
+                mentorName = "Mentor"
+            )
+        }
+
+        composable<Screen.MentorTienda> {
+            ListaRecompensaScreen(
+                onNavigateToCreate = {
+                    navHostController.navigate(Screen.CreateRecompensa)
+                },
+                onNavigateToEdit = { recompensaId ->
+                    // TODO: implementar edit para mentor
+                    println("Mentor editando recompensa: $recompensaId")
+                },
+                mentorName = "Mentor"
+            )
+        }
+
+        composable<Screen.MentorPerfil> {
+            PerfilScreen(
+                onLogout = {
+                    loginViewModel.onLogoutClick()
+                }
+            )
+        }
+
+
+        composable<Screen.Tareas> {
+            // TODO: Crear componente que muestre tareas asignadas a la Gema
+            ListTareaScreen(
+                onNavigateToCreate = {
+                    println("Las Gemas no pueden crear tareas")
+                },
+                onNavigateToEdit = { tareaId ->
+                    // TODO: implementar vista de completar tarea para Gema
+                    println("Gema completando tarea: $tareaId")
+                },
+                mentorName = "Gema View"
             )
         }
     }
