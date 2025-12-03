@@ -1,4 +1,4 @@
-package edu.ucne.tasktally.data.remote.usuarios
+package edu.ucne.tasktally.data.remote.DTOs.usuarios
 
 import com.squareup.moshi.Json
 

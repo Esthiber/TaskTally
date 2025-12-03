@@ -1,0 +1,98 @@
+package edu.ucne.tasktally.data.local.preferences
+
+import android.content.Context
+import androidx.datastore.core.DataStore
+import androidx.datastore.preferences.core.Preferences
+import androidx.datastore.preferences.core.edit
+import androidx.datastore.preferences.core.stringPreferencesKey
+import androidx.datastore.preferences.core.booleanPreferencesKey
+import androidx.datastore.preferences.core.intPreferencesKey
+import androidx.datastore.preferences.preferencesDataStore
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.map
+import javax.inject.Inject
+import javax.inject.Singleton
+
+val Context.dataStore: DataStore<Preferences> by preferencesDataStore(name = "auth_preferences")
+
+@Singleton
+class AuthPreferencesManager @Inject constructor(
+    private val context: Context
+) {
+    private val dataStore = context.dataStore
+
+    companion object {
+        private val ACCESS_TOKEN_KEY = stringPreferencesKey("access_token")
+        private val REFRESH_TOKEN_KEY = stringPreferencesKey("refresh_token")
+        private val USER_ID_KEY = intPreferencesKey("user_id")
+        private val USERNAME_KEY = stringPreferencesKey("username")
+        private val EMAIL_KEY = stringPreferencesKey("email")
+        private val IS_LOGGED_IN_KEY = booleanPreferencesKey("is_logged_in")
+        private val TOKEN_EXPIRES_AT_KEY = stringPreferencesKey("token_expires_at")
+    }
+
+    suspend fun saveAuthData(
+        accessToken: String,
+        refreshToken: String,
+        userId: Int,
+        username: String,
+        email: String?,
+        expiresAt: String?
+    ) {
+        dataStore.edit { preferences ->
+            preferences[ACCESS_TOKEN_KEY] = accessToken
+            preferences[REFRESH_TOKEN_KEY] = refreshToken
+            preferences[USER_ID_KEY] = userId
+            preferences[USERNAME_KEY] = username
+            preferences[EMAIL_KEY] = email ?: ""
+            preferences[IS_LOGGED_IN_KEY] = true
+            preferences[TOKEN_EXPIRES_AT_KEY] = expiresAt ?: ""
+        }
+    }
+
+    suspend fun updateTokens(
+        accessToken: String,
+        refreshToken: String,
+        expiresAt: String?
+    ) {
+        dataStore.edit { preferences ->
+            preferences[ACCESS_TOKEN_KEY] = accessToken
+            preferences[REFRESH_TOKEN_KEY] = refreshToken
+            preferences[TOKEN_EXPIRES_AT_KEY] = expiresAt ?: ""
+        }
+    }
+
+    suspend fun clearAuthData() {
+        dataStore.edit { preferences ->
+            preferences.clear()
+        }
+    }
+
+    val accessToken: Flow<String?> = dataStore.data.map { preferences ->
+        preferences[ACCESS_TOKEN_KEY]
+    }
+
+    val refreshToken: Flow<String?> = dataStore.data.map { preferences ->
+        preferences[REFRESH_TOKEN_KEY]
+    }
+
+    val userId: Flow<Int?> = dataStore.data.map { preferences ->
+        preferences[USER_ID_KEY]
+    }
+
+    val username: Flow<String?> = dataStore.data.map { preferences ->
+        preferences[USERNAME_KEY]
+    }
+
+    val email: Flow<String?> = dataStore.data.map { preferences ->
+        preferences[EMAIL_KEY]
+    }
+
+    val isLoggedIn: Flow<Boolean> = dataStore.data.map { preferences ->
+        preferences[IS_LOGGED_IN_KEY] ?: false
+    }
+
+    val tokenExpiresAt: Flow<String?> = dataStore.data.map { preferences ->
+        preferences[TOKEN_EXPIRES_AT_KEY]
+    }
+}

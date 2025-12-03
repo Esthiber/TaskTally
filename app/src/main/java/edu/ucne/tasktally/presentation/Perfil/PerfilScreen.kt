@@ -23,8 +23,10 @@ import edu.ucne.tasktally.ui.theme.TaskTallyTheme
 import kotlinx.coroutines.delay
 
 @Composable
-fun PerfilScreen() { // TODO Completar PerfilScreen
-    var isLoading by remember { mutableStateOf(true) }
+fun PerfilScreen(
+    onLogout: () -> Unit = {}
+) { // TODO Completar PerfilScreen
+    var isLoading by remember { mutableStateOf(false) }
 
     // TODO: Estados que deben venir del ViewModel
     val userName by remember { mutableStateOf("Alma") }
@@ -102,6 +104,22 @@ fun PerfilScreen() { // TODO Completar PerfilScreen
                 }
             )
 
+            Spacer(modifier = Modifier.height(24.dp))
+
+            // Logout Button
+            Button(
+                onClick = onLogout,
+                modifier = Modifier.fillMaxWidth(),
+                colors = ButtonDefaults.buttonColors(
+                    containerColor = MaterialTheme.colorScheme.error
+                )
+            ) {
+                Text(
+                    text = "Cerrar Sesión",
+                    color = MaterialTheme.colorScheme.onError
+                )
+            }
+
             Spacer(modifier = Modifier.height(16.dp))
         }
     }
@@ -111,6 +129,6 @@ fun PerfilScreen() { // TODO Completar PerfilScreen
 @Composable
 fun PerfilScreenPreview() {
     TaskTallyTheme {
-        PerfilScreen()
+        PerfilScreen(onLogout = {})
     }
 }

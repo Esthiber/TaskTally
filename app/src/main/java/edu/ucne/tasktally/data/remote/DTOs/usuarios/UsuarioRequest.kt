@@ -1,4 +1,4 @@
-package edu.ucne.tasktally.data.remote.usuarios
+package edu.ucne.tasktally.data.remote.DTOs.usuarios
 
 data class UsuarioRequest(
     val userName: String,
