@@ -2,6 +2,7 @@ package edu.ucne.tasktally.data.local.entidades
 
 import androidx.room.Entity
 import androidx.room.ForeignKey
+import androidx.room.Index
 import androidx.room.PrimaryKey
 
 @Entity(
@@ -9,7 +10,7 @@ import androidx.room.PrimaryKey
     foreignKeys = [
         ForeignKey(
             entity = UsuarioEntity::class,
-            parentColumns = ["remoteId"],
+            parentColumns = ["userId"],
             childColumns = ["userId"],
             onDelete = ForeignKey.CASCADE
         ),
@@ -19,7 +20,8 @@ import androidx.room.PrimaryKey
             childColumns = ["userInfoId"],
             onDelete = ForeignKey.CASCADE
         )
-    ]
+    ],
+    indices = [Index("userId"), Index("userInfoId")]
 )
 data class MentorEntity(
     @PrimaryKey(autoGenerate = true)

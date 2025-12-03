@@ -2,6 +2,7 @@ package edu.ucne.tasktally.data.local.entidades
 
 import androidx.room.Entity
 import androidx.room.ForeignKey
+import androidx.room.Index
 import androidx.room.PrimaryKey
 
 @Entity(
@@ -9,7 +10,7 @@ import androidx.room.PrimaryKey
     foreignKeys = [
         ForeignKey(
             entity = UsuarioEntity::class,
-            parentColumns = ["remoteId"],
+            parentColumns = ["userId"],
             childColumns = ["createdBy"],
             onDelete = ForeignKey.CASCADE
         ),
@@ -25,7 +26,8 @@ import androidx.room.PrimaryKey
             childColumns = ["estadoId"],
             onDelete = ForeignKey.SET_NULL
         )
-    ]
+    ],
+    indices = [Index("estadoId"),Index("zonaId"),Index("createdBy")]
 )
 data class TareaEntity(
     @PrimaryKey(autoGenerate = true)
