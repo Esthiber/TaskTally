@@ -22,9 +22,6 @@ class ListTareaViewModel @Inject constructor(
     private val _state = MutableStateFlow(ListTareaUiState(isLoading = true))
     val state: StateFlow<ListTareaUiState> = _state.asStateFlow()
 
-    // TODO: Obtener el mentorId de la sesión actual
-    private val mentorId: Int = 1
-
     init {
         onEvent(ListTareaUiEvent.Load)
     }
@@ -41,7 +38,7 @@ class ListTareaViewModel @Inject constructor(
 
     private fun observe() {
         viewModelScope.launch {
-            observeTareasUseCase(mentorId).collectLatest { list ->
+            observeTareasUseCase().collectLatest { list ->
                 _state.update {
                     it.copy(
                         isLoading = false,
@@ -53,7 +50,7 @@ class ListTareaViewModel @Inject constructor(
         }
     }
 
-    private fun onDelete(id: Int) {
+    private fun onDelete(id: String) {
         viewModelScope.launch {
             deleteTareaUseCase(id)
             onEvent(ListTareaUiEvent.ShowMessage("Tarea eliminada"))

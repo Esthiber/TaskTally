@@ -8,7 +8,7 @@ import javax.inject.Inject
 class CreateZonaUseCase @Inject constructor(
     private val zonaRepository: ZonaRepository
 ) {
-    suspend operator fun invoke(zona: Zona): Resource<Int> {
+    suspend operator fun invoke(zona: Zona): Resource<String> {
         return try {
             Resource.Success(zonaRepository.upsert(zona))
         } catch (e: Exception) {

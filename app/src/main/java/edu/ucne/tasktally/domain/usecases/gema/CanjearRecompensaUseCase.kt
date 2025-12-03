@@ -7,21 +7,18 @@ import javax.inject.Inject
 
 class CanjearRecompensaUseCase @Inject constructor(
     private val gemaRepository: GemaRepository,
-    private val recompensaRepository: RecompensaRepository,
-    private val transaccionRepository: TransaccionRecompensaRepository
+    private val recompensaRepository: RecompensaRepository
 ) {
-    suspend operator fun invoke(transaccion: TransaccionRecompensa): Resource<Unit> {
+    suspend operator fun invoke(gemaId: String, recompensaId: String): Resource<Unit> {
         return try {
-            val gema = gemaRepository.getGema(transaccion.gemaId)
-            val recompensa = recompensaRepository.getRecompensa(transaccion.recompensaId)
+            val gema = gemaRepository.getGema(gemaId)
+            val recompensa = recompensaRepository.getRecompensa(recompensaId)
 
             if (gema == null || recompensa == null)
                 return Resource.Error("Datos inválidos para canje")
 
             if (gema.puntosActuales < recompensa.precio)
                 return Resource.Error("No tienes suficientes puntos")
-
-            transaccionRepository.upsert(transaccion)
 
             val nuevaGema = gema.copy(puntosActuales = gema.puntosActuales - recompensa.precio)
             gemaRepository.upsert(nuevaGema)

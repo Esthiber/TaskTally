@@ -3,7 +3,6 @@ package edu.ucne.tasktally.domain.usecases.gema
 import edu.ucne.tasktally.domain.models.Recompensa
 import edu.ucne.tasktally.domain.repository.RecompensaRepository
 import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.map
 import javax.inject.Inject
 
 class ObserveRecompensasDispoUseCase @Inject constructor(
@@ -11,6 +10,5 @@ class ObserveRecompensasDispoUseCase @Inject constructor(
 ) {
     operator fun invoke(): Flow<List<Recompensa>> {
         return recompensaRepository.observeRecompensas()
-            .map { list -> list.filter { it.isDisponible } }
     }
 }

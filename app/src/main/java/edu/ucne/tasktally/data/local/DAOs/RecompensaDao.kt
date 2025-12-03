@@ -13,7 +13,7 @@ interface RecompensaDao {
     fun observeAll(): Flow<List<RecompensaEntity>>
 
     @Query("SELECT * FROM recompensa WHERE id = :id")
-    suspend fun getById(id: Int?): RecompensaEntity?
+    suspend fun getById(id: String?): RecompensaEntity?
 
     @Upsert
     suspend fun upsert(recompensa: RecompensaEntity)
@@ -22,5 +22,5 @@ interface RecompensaDao {
     suspend fun delete(recompensa: RecompensaEntity)
 
     @Query("DELETE FROM recompensa WHERE id = :id")
-    suspend fun deleteById(id: Int)
+    suspend fun deleteById(id: String)
 }

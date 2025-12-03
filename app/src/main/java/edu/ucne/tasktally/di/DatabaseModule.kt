@@ -32,28 +32,12 @@ object DatabaseModule {
     }
 
     @Provides
-    fun provideEstadoDao(db: TaskTallyDatabase): EstadoDao =
-        db.estadoDao()
-
-    @Provides
     fun provideGemaDao(db: TaskTallyDatabase): GemaDao =
         db.gemaDao()
 
     @Provides
-    fun provideGemaZonaDao(db: TaskTallyDatabase): GemaZonaDao =
-        db.gemaZonaDao()
-
-    @Provides
     fun provideMentorDao(db: TaskTallyDatabase): MentorDao =
         db.mentorDao()
-
-    @Provides
-    fun provideProgresoDao(db: TaskTallyDatabase): ProgresoDao =
-        db.progresoDao()
-
-    @Provides
-    fun provideRachaDao(db: TaskTallyDatabase): RachaDao =
-        db.rachaDao()
 
     @Provides
     fun provideRecompensaDao(db: TaskTallyDatabase): RecompensaDao =
@@ -62,14 +46,6 @@ object DatabaseModule {
     @Provides
     fun provideTareaDao(db: TaskTallyDatabase): TareaDao =
         db.tareaDao()
-
-    @Provides
-    fun provideTransaccionRecompensaDao(db: TaskTallyDatabase): TransaccionRecompensaDao =
-        db.transaccionRecompensaDao()
-
-    @Provides
-    fun provideUserInfoDao(db: TaskTallyDatabase): UserInfoDao =
-        db.userInfoDao()
 
     @Provides
     fun provideZonaDao(db: TaskTallyDatabase): ZonaDao =

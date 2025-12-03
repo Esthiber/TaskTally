@@ -8,6 +8,7 @@ import edu.ucne.tasktally.domain.repository.RecompensaRepository
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
 import javax.inject.Inject
+import java.util.UUID
 
 class RecompensaRepositoryImpl @Inject constructor(
     private val dao: RecompensaDao
@@ -16,19 +17,24 @@ class RecompensaRepositoryImpl @Inject constructor(
     override fun observeRecompensas(): Flow<List<Recompensa>> =
         dao.observeAll().map { list -> list.map { it.toDomain() } }
 
-    override suspend fun getRecompensa(id: Int?): Recompensa? =
+    override suspend fun getRecompensa(id: String?): Recompensa? =
         dao.getById(id)?.toDomain()
 
-    override suspend fun upsert(recompensa: Recompensa): Int {
-        dao.upsert(recompensa.toEntity())
-        return recompensa.recompensaId
+    override suspend fun upsert(recompensa: Recompensa): String {
+        val entityToSave = if (recompensa.id.isBlank()) {
+            recompensa.toEntity().copy(id = UUID.randomUUID().toString())
+        } else {
+            recompensa.toEntity()
+        }
+        dao.upsert(entityToSave)
+        return entityToSave.id
     }
 
     override suspend fun delete(recompensa: Recompensa) {
         dao.delete(recompensa.toEntity())
     }
 
-    override suspend fun deleteById(id: Int) {
+    override suspend fun deleteById(id: String) {
         dao.deleteById(id)
     }
 }

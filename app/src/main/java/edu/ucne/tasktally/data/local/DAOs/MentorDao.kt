@@ -10,7 +10,7 @@ interface MentorDao {
     fun observeAll(): Flow<List<MentorEntity>>
 
     @Query("SELECT * FROM mentor WHERE id = :id")
-    suspend fun getById(id: Int?): MentorEntity?
+    suspend fun getById(id: String?): MentorEntity?
 
     @Upsert
     suspend fun upsert(mentor: MentorEntity)
@@ -19,5 +19,5 @@ interface MentorDao {
     suspend fun delete(mentor: MentorEntity)
 
     @Query("DELETE FROM mentor WHERE id = :id")
-    suspend fun deleteById(id: Int)
+    suspend fun deleteById(id: String)
 }

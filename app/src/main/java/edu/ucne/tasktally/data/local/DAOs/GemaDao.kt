@@ -10,7 +10,7 @@ interface GemaDao {
     fun observeAll(): Flow<List<GemaEntity>>
 
     @Query("SELECT * FROM gema WHERE id = :id")
-    suspend fun getById(id: Int?): GemaEntity?
+    suspend fun getById(id: String?): GemaEntity?
 
     @Upsert
     suspend fun upsert(gema: GemaEntity)
@@ -19,5 +19,5 @@ interface GemaDao {
     suspend fun delete(gema: GemaEntity)
 
     @Query("DELETE FROM gema WHERE id = :id")
-    suspend fun deleteById(id: Int)
+    suspend fun deleteById(id: String)
 }

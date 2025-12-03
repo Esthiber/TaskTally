@@ -10,7 +10,7 @@ interface ZonaDao {
     fun observeAll(): Flow<List<ZonaEntity>>
 
     @Query("SELECT * FROM zona WHERE id = :id")
-    suspend fun getById(id: Int?): ZonaEntity?
+    suspend fun getById(id: String?): ZonaEntity?
 
     @Upsert
     suspend fun upsert(zona: ZonaEntity)
@@ -19,5 +19,5 @@ interface ZonaDao {
     suspend fun delete(zona: ZonaEntity)
 
     @Query("DELETE FROM zona WHERE id = :id")
-    suspend fun deleteById(id: Int)
+    suspend fun deleteById(id: String)
 }
