@@ -32,35 +32,27 @@ object DatabaseModule {
             .fallbackToDestructiveMigration()
             .build()
     }
-
     @Provides
     fun provideGemaDao(db: TaskTallyDatabase): GemaDao =
         db.gemaDao()
-
     @Provides
     fun provideMentorDao(db: TaskTallyDatabase): MentorDao =
         db.mentorDao()
-
     @Provides
     fun provideRecompensaDao(db: TaskTallyDatabase): RecompensaDao =
         db.recompensaDao()
-
     @Provides
     fun provideRecompensaGemaDao(db: TaskTallyDatabase): RecompensaGemaDao =
         db.recompensaGemaDao()
-
     @Provides
     fun provideTareaGemaDao(db: TaskTallyDatabase): TareaGemaDao =
         db.tareaGemaDao()
-
     @Provides
     fun provideTransaccionDao(db: TaskTallyDatabase): TransaccionDao =
         db.transaccionDao()
-
     @Provides
     fun provideZonaDao(db: TaskTallyDatabase): ZonaDao =
         db.zonaDao()
-
     @Provides
     @Singleton
     fun provideWorkManager(@ApplicationContext context: Context): WorkManager {
