@@ -11,7 +11,9 @@ import dagger.hilt.components.SingletonComponent
 import edu.ucne.tasktally.data.local.DAOs.GemaDao
 import edu.ucne.tasktally.data.local.DAOs.MentorDao
 import edu.ucne.tasktally.data.local.DAOs.RecompensaDao
-import edu.ucne.tasktally.data.local.DAOs.TareaDao
+import edu.ucne.tasktally.data.local.DAOs.RecompensaGemaDao
+import edu.ucne.tasktally.data.local.DAOs.TareaGemaDao
+import edu.ucne.tasktally.data.local.DAOs.TransaccionDao
 import edu.ucne.tasktally.data.local.TaskTallyDatabase
 import edu.ucne.tasktally.data.local.DAOs.ZonaDao
 import javax.inject.Singleton
@@ -30,27 +32,27 @@ object DatabaseModule {
             .fallbackToDestructiveMigration()
             .build()
     }
-
     @Provides
     fun provideGemaDao(db: TaskTallyDatabase): GemaDao =
         db.gemaDao()
-
     @Provides
     fun provideMentorDao(db: TaskTallyDatabase): MentorDao =
         db.mentorDao()
-
     @Provides
     fun provideRecompensaDao(db: TaskTallyDatabase): RecompensaDao =
         db.recompensaDao()
-
     @Provides
-    fun provideTareaDao(db: TaskTallyDatabase): TareaDao =
-        db.tareaDao()
-
+    fun provideRecompensaGemaDao(db: TaskTallyDatabase): RecompensaGemaDao =
+        db.recompensaGemaDao()
+    @Provides
+    fun provideTareaGemaDao(db: TaskTallyDatabase): TareaGemaDao =
+        db.tareaGemaDao()
+    @Provides
+    fun provideTransaccionDao(db: TaskTallyDatabase): TransaccionDao =
+        db.transaccionDao()
     @Provides
     fun provideZonaDao(db: TaskTallyDatabase): ZonaDao =
         db.zonaDao()
-
     @Provides
     @Singleton
     fun provideWorkManager(@ApplicationContext context: Context): WorkManager {
