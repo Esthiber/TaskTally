@@ -9,7 +9,7 @@ import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.toRoute
-import edu.ucne.tasktally.presentation.Perfil.PerfilScreen
+import edu.ucne.tasktally.presentation.mentor.perfil.PerfilScreen
 import edu.ucne.tasktally.presentation.Tienda.TiendaScreen
 import edu.ucne.tasktally.presentation.auth.LoginScreen
 import edu.ucne.tasktally.presentation.auth.LoginViewModel
