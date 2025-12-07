@@ -18,5 +18,7 @@ data class TareaUiState(
     val tituloError: String? = null,
     val puntosError: String? = null,
 
+    val mentorName: String = "Mentor",
+
     val navigateBack: Boolean = false
 )
