@@ -45,7 +45,6 @@ fun MentorTareaCard(
             .clip(RoundedCornerShape(16.dp))
             .background(MaterialTheme.colorScheme.primary)
     ) {
-        // Solo mostrar imagen si tenemos un ID válido
         if (imageResId != null) {
             Box(
                 modifier = Modifier.fillMaxSize(),

@@ -108,7 +108,6 @@ fun CreateTareaScreen(
     }
 }
 
-@OptIn(ExperimentalLayoutApi::class)
 @Composable
 fun CreateTareaBody(
     state: TareaUiState,
@@ -137,7 +136,7 @@ fun CreateTareaBody(
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
                 Text(
-                    text = "Hola, mentor!",
+                    text = "Hola, ${state.mentorName}!",
                     fontSize = 14.sp,
                     color = MaterialTheme.colorScheme.primary,
                     modifier = Modifier.fillMaxWidth(),
@@ -176,6 +175,10 @@ fun CreateTareaBody(
                     onValueChange = { onEvent(TareaUiEvent.OnPuntosChange(it)) },
                     label = { Text(text = "Puntos") },
                     keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+                    isError = state.puntosError != null,
+                    supportingText = state.puntosError?.let {
+                        { Text(text = it, color = MaterialTheme.colorScheme.error) }
+                    },
                     modifier = Modifier.fillMaxWidth(),
                     shape = RoundedCornerShape(8.dp)
                 )
@@ -246,5 +249,34 @@ private fun ImageSelectorBox(
                 Text("Subir una imagen")
             }
         }
+    }
+}
+
+@Preview(showBackground = true)
+@Composable
+fun CreateTareaScreenPreview() {
+    TaskTallyTheme {
+        CreateTareaBody(
+            state = TareaUiState(mentorName = "Esthiber"),
+            onEvent = {}
+        )
+    }
+}
+
+@Preview(showBackground = true)
+@Composable
+fun CreateTareaScreenEditingPreview() {
+    TaskTallyTheme {
+        CreateTareaBody(
+            state = TareaUiState(
+                isEditing = true,
+                mentorName = "Esthiber",
+                titulo = "Arreglar la habitación",
+                descripcion = "Ordenar y limpiar todo",
+                puntos = "60",
+                imgVector = "img0_yellow_tree"
+            ),
+            onEvent = {}
+        )
     }
 }

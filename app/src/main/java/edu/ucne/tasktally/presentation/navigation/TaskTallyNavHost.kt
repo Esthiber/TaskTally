@@ -15,6 +15,8 @@ import edu.ucne.tasktally.presentation.auth.LoginScreen
 import edu.ucne.tasktally.presentation.auth.LoginViewModel
 import edu.ucne.tasktally.presentation.auth.RegisterScreen
 import edu.ucne.tasktally.presentation.gema.tareas.GemaTareasScreen
+import edu.ucne.tasktally.presentation.mentor.recompensas.CreateRecompensaScreen
+import edu.ucne.tasktally.presentation.mentor.recompensas.list.ListRecompensaScreen
 import edu.ucne.tasktally.presentation.mentor.tareas.CreateTareaScreen
 import edu.ucne.tasktally.presentation.mentor.tareas.list.ListTareaScreen
 import edu.ucne.tasktally.presentation.zona.ZoneAccessScreen
@@ -152,7 +154,42 @@ fun TaskTallyNavHost(
             )
         }
 
-        composable<Screen.MentorTienda> {}
+        composable<Screen.MentorTienda> {
+            ListRecompensaScreen(
+                onNavigateToCreate = {
+                    navHostController.navigate(Screen.CreateRecompensa)
+                },
+                onNavigateToEdit = { recompensaId ->
+                    navHostController.navigate(Screen.EditRecompensa(recompensaId))
+                }
+            )
+        }
+
+        composable<Screen.ListRecompensas> {
+            ListRecompensaScreen(
+                onNavigateToCreate = {
+                    navHostController.navigate(Screen.CreateRecompensa)
+                },
+                onNavigateToEdit = { recompensaId ->
+                    navHostController.navigate(Screen.EditRecompensa(recompensaId))
+                }
+            )
+        }
+
+        composable<Screen.CreateRecompensa> {
+            CreateRecompensaScreen(
+                recompensaId = null,
+                onNavigateBack = { navHostController.popBackStack() }
+            )
+        }
+
+        composable<Screen.EditRecompensa> { backStackEntry ->
+            val args = backStackEntry.toRoute<Screen.EditRecompensa>()
+            CreateRecompensaScreen(
+                recompensaId = args.recompensaId,
+                onNavigateBack = { navHostController.popBackStack() }
+            )
+        }
 
         composable<Screen.MentorPerfil> {
             PerfilScreen(

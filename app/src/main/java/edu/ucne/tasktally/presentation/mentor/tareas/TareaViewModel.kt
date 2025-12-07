@@ -27,6 +27,17 @@ class TareaViewModel @Inject constructor(
     private val _state = MutableStateFlow(TareaUiState())
     val state: StateFlow<TareaUiState> = _state.asStateFlow()
 
+    init {
+        loadMentorName()
+    }
+
+    private fun loadMentorName() {
+        viewModelScope.launch {
+            val username = authPreferencesManager.username.first() ?: "Mentor"
+            _state.update { it.copy(mentorName = username) }
+        }
+    }
+
     fun onEvent(event: TareaUiEvent) {
         when (event) {
             is TareaUiEvent.OnTituloChange ->
@@ -82,6 +93,7 @@ class TareaViewModel @Inject constructor(
             }
         }
     }
+
     private fun onSave() {
         if (!validarCampos()) return
 

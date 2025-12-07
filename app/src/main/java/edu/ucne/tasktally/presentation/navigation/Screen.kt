@@ -37,7 +37,7 @@ sealed interface Screen {
     data object CreateRecompensa : Screen
 
     @Serializable
-    data class EditRecompensa(val recompensaId: Int) : Screen
+    data class EditRecompensa(val recompensaId: String) : Screen
 
     @Serializable
     data object ListRecompensas : Screen
