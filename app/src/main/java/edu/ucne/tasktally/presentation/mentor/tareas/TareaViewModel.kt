@@ -4,13 +4,14 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
 import edu.ucne.tasktally.data.local.preferences.AuthPreferencesManager
-
-import edu.ucne.tasktally.domain.usecases.mentor.tarea.CreateTareaMentorLocalUseCase
 import edu.ucne.tasktally.domain.models.TareaMentor
+import edu.ucne.tasktally.domain.usecases.GetTareaMentorUseCase
+import edu.ucne.tasktally.domain.usecases.UpsertTareaMentorUseCase
+import edu.ucne.tasktally.domain.usecases.mentor.tarea.CreateTareaMentorLocalUseCase
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import javax.inject.Inject
@@ -18,6 +19,8 @@ import javax.inject.Inject
 @HiltViewModel
 class TareaViewModel @Inject constructor(
     private val createTareaMentorLocalUseCase: CreateTareaMentorLocalUseCase,
+    private val getTareaMentorUseCase: GetTareaMentorUseCase,
+    private val upsertTareaMentorUseCase: UpsertTareaMentorUseCase,
     private val authPreferencesManager: AuthPreferencesManager
 ) : ViewModel() {
 
@@ -26,56 +29,59 @@ class TareaViewModel @Inject constructor(
 
     fun onEvent(event: TareaUiEvent) {
         when (event) {
-            is TareaUiEvent.OnTituloChange -> {
+            is TareaUiEvent.OnTituloChange ->
                 _state.update { it.copy(titulo = event.value, tituloError = null) }
-            }
-            is TareaUiEvent.OnDescripcionChange -> {
-                _state.update { it.copy(descripcion = event.value, descripcionError = null) }
-            }
-            is TareaUiEvent.OnPuntosChange -> {
+
+            is TareaUiEvent.OnDescripcionChange ->
+                _state.update { it.copy(descripcion = event.value) }
+
+            is TareaUiEvent.OnPuntosChange ->
                 _state.update { it.copy(puntos = event.value, puntosError = null) }
-            }
-            is TareaUiEvent.OnRecurrenteChange -> {
-                _state.update { it.copy(recurrente = event.value) }
-            }
-            is TareaUiEvent.OnDiasChange -> {
-                _state.update { it.copy(diasSeleccionados = event.dias) }
-            }
-            is TareaUiEvent.OnAsignadaChange -> {
-                _state.update { it.copy(asignada = event.gemaId) }
-            }
-            is TareaUiEvent.OnImageSelected -> {
+
+            TareaUiEvent.OnShowImagePicker ->
+                _state.update { it.copy(showImagePicker = true) }
+
+            TareaUiEvent.OnDismissImagePicker ->
+                _state.update { it.copy(showImagePicker = false) }
+
+            is TareaUiEvent.OnImageSelected ->
+                _state.update { it.copy(imgVector = event.imageName, showImagePicker = false) }
+
+            TareaUiEvent.Save -> onSave()
+        }
+    }
+
+    fun loadTareaParaEdicion(id: String) {
+        viewModelScope.launch {
+            _state.update { it.copy(isLoading = true, isEditing = true) }
+
+            try {
+                val tarea = getTareaMentorUseCase(id)
+
+                if (tarea != null) {
+                    _state.update {
+                        it.copy(
+                            tareaId = tarea.tareaId,
+                            titulo = tarea.titulo,
+                            descripcion = tarea.descripcion,
+                            puntos = tarea.puntos.toString(),
+                            imgVector = tarea.nombreImgVector,
+                            isLoading = false
+                        )
+                    }
+                } else {
+                    _state.update {
+                        it.copy(error = "No se encontró la tarea", isLoading = false)
+                    }
+                }
+
+            } catch (e: Exception) {
                 _state.update {
-                    it.copy(imgVector = event.imageName, showImagePicker = false)
+                    it.copy(error = e.message ?: "Error al cargar la tarea", isLoading = false)
                 }
             }
-            TareaUiEvent.OnShowImagePicker -> {
-                _state.update { it.copy(showImagePicker = true) }
-            }
-            TareaUiEvent.OnDismissImagePicker -> {
-                _state.update { it.copy(showImagePicker = false) }
-            }
-            TareaUiEvent.Save -> onSave()
-            is TareaUiEvent.LoadTarea -> loadTarea(event.id)
         }
     }
-
-    private fun loadTarea(id: Int) {
-        viewModelScope.launch {
-            _state.update {
-                it.copy(
-                    isLoading = true,
-                    isEditing = true,
-                    tareaId = id
-                )
-            }
-
-            // TODO: implementar GetTareaByIdUseCase
-
-            _state.update { it.copy(isLoading = false) }
-        }
-    }
-
     private fun onSave() {
         if (!validarCampos()) return
 
@@ -85,36 +91,27 @@ class TareaViewModel @Inject constructor(
             val mentorId = authPreferencesManager.mentorId.first()
 
             if (mentorId == null) {
-                _state.update {
-                    it.copy(
-                        isLoading = false,
-                        error = "No se encontró el ID del mentor"
-                    )
-                }
+                _state.update { it.copy(isLoading = false, error = "No se encontró ID mentor") }
                 return@launch
             }
 
-            val currentState = _state.value
+            val st = _state.value
 
-            if (currentState.isEditing && currentState.tareaId != null) {
-                updateTarea(mentorId, currentState)
+            if (st.isEditing && st.tareaId != null) {
+                updateTarea(mentorId, st)
             } else {
-                createTarea(mentorId, currentState)
+                createTarea(mentorId, st)
             }
         }
     }
 
-    private suspend fun createTarea(mentorId: Int, currentState: TareaUiState) {
+    private suspend fun createTarea(mentorId: Int, st: TareaUiState) {
         try {
             val tarea = TareaMentor(
-                titulo = currentState.titulo.trim(),
-                descripcion = currentState.descripcion.trim(),
-                puntos = currentState.puntos.toIntOrNull() ?: 0,
-                recurrente = currentState.recurrente,
-                dias = if (currentState.recurrente)
-                    currentState.diasSeleccionados.joinToString(",").ifBlank { null }
-                else null,
-                nombreImgVector = currentState.imgVector,
+                titulo = st.titulo.trim(),
+                descripcion = st.descripcion.trim(),
+                puntos = st.puntos.toInt(),
+                nombreImgVector = st.imgVector,
                 mentorId = mentorId,
                 isPendingCreate = true
             )
@@ -124,45 +121,54 @@ class TareaViewModel @Inject constructor(
             _state.update {
                 it.copy(
                     isLoading = false,
-                    message = "Tarea guardada localmente. Se sincronizará automáticamente.",
+                    message = "Guardado localmente",
                     navigateBack = true
                 )
             }
+
         } catch (e: Exception) {
-            _state.update {
-                it.copy(
-                    isLoading = false,
-                    error = e.message ?: "Error al crear la tarea"
-                )
-            }
+            _state.update { it.copy(isLoading = false, error = e.message) }
         }
     }
 
-    private suspend fun updateTarea(mentorId: Int, currentState: TareaUiState) {
-        // TODO: Implement local update functionality
-        _state.update {
-            it.copy(
-                isLoading = false,
-                error = "Función de edición no implementada aún"
+    private suspend fun updateTarea(mentorId: Int, st: TareaUiState) {
+        try {
+            val tarea = TareaMentor(
+                tareaId = st.tareaId!!,
+                titulo = st.titulo.trim(),
+                descripcion = st.descripcion.trim(),
+                puntos = st.puntos.toInt(),
+                nombreImgVector = st.imgVector,
+                mentorId = mentorId,
+                isPendingUpdate = true
             )
+
+            upsertTareaMentorUseCase(tarea)
+
+            _state.update {
+                it.copy(
+                    isLoading = false,
+                    message = "Tarea actualizada",
+                    navigateBack = true
+                )
+            }
+
+        } catch (e: Exception) {
+            _state.update { it.copy(isLoading = false, error = e.message) }
         }
     }
 
     private fun validarCampos(): Boolean {
-        var isValid = true
-
+        var ok = true
         if (_state.value.titulo.isBlank()) {
             _state.update { it.copy(tituloError = "El título es requerido") }
-            isValid = false
+            ok = false
         }
-
-        val puntos = _state.value.puntos.toIntOrNull()
-        if (puntos == null || puntos <= 0) {
-            _state.update { it.copy(puntosError = "Los puntos deben ser un número válido mayor a 0") }
-            isValid = false
+        if (_state.value.puntos.toIntOrNull() == null || _state.value.puntos.toInt() <= 0) {
+            _state.update { it.copy(puntosError = "Puntos inválidos") }
+            ok = false
         }
-
-        return isValid
+        return ok
     }
 
     fun onNavigationHandled() {
@@ -171,30 +177,5 @@ class TareaViewModel @Inject constructor(
 
     fun onMessageShown() {
         _state.update { it.copy(message = null, error = null) }
-    }
-
-    fun setTareaParaEditar(
-        tareaId: Int,
-        titulo: String,
-        descripcion: String?,
-        puntos: Int,
-        recurrente: Boolean,
-        dias: String?,
-        imgVector: String?,
-        asignada: String
-    ) {
-        _state.update {
-            it.copy(
-                isEditing = true,
-                tareaId = tareaId,
-                titulo = titulo,
-                descripcion = descripcion ?: "",
-                puntos = puntos.toString(),
-                recurrente = recurrente,
-                diasSeleccionados = dias?.split(",")?.filter { d -> d.isNotBlank() } ?: emptyList(),
-                imgVector = imgVector,
-                asignada = asignada
-            )
-        }
     }
 }
