@@ -8,5 +8,4 @@ sealed interface RecompensaUiEvent {
     data object OnShowImagePicker : RecompensaUiEvent
     data object OnDismissImagePicker : RecompensaUiEvent
     data object Save : RecompensaUiEvent
-    data class LoadRecompensa(val id: String) : RecompensaUiEvent
 }

@@ -40,8 +40,8 @@ fun CreateRecompensaScreen(
     val state by viewModel.state.collectAsStateWithLifecycle()
 
     LaunchedEffect(recompensaId) {
-        if (!recompensaId.isNullOrBlank()) {
-            viewModel.onEvent(RecompensaUiEvent.LoadRecompensa(recompensaId))
+        if (recompensaId != null) {
+            viewModel.loadRecompensaParaEdicion(recompensaId)
         }
     }
 
@@ -136,7 +136,7 @@ fun CreateRecompensaBody(
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
                 Text(
-                    text = "Hola, mentor!",
+                    text = "Hola, ${state.mentorName}!",
                     fontSize = 14.sp,
                     color = MaterialTheme.colorScheme.primary,
                     modifier = Modifier.fillMaxWidth(),
@@ -148,36 +148,13 @@ fun CreateRecompensaBody(
                 OutlinedTextField(
                     value = state.titulo,
                     onValueChange = { onEvent(RecompensaUiEvent.OnTituloChange(it)) },
-                    label = { Text("Título") },
+                    label = { Text(text = "Título") },
                     isError = state.tituloError != null,
                     supportingText = state.tituloError?.let {
-                        { Text(it, color = MaterialTheme.colorScheme.error) }
+                        { Text(text = it, color = MaterialTheme.colorScheme.error) }
                     },
                     modifier = Modifier.fillMaxWidth(),
-                    shape = RoundedCornerShape(8.dp),
-                    colors = OutlinedTextFieldDefaults.colors(
-                        unfocusedBorderColor = MaterialTheme.colorScheme.outline,
-                        focusedBorderColor = MaterialTheme.colorScheme.primary
-                    )
-                )
-
-                Spacer(modifier = Modifier.height(16.dp))
-
-                OutlinedTextField(
-                    value = state.precio,
-                    onValueChange = { onEvent(RecompensaUiEvent.OnPrecioChange(it)) },
-                    label = { Text("Costo") },
-                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal),
-                    isError = state.precioError != null,
-                    supportingText = state.precioError?.let {
-                        { Text(it, color = MaterialTheme.colorScheme.error) }
-                    },
-                    modifier = Modifier.fillMaxWidth(),
-                    shape = RoundedCornerShape(8.dp),
-                    colors = OutlinedTextFieldDefaults.colors(
-                        unfocusedBorderColor = MaterialTheme.colorScheme.outline,
-                        focusedBorderColor = MaterialTheme.colorScheme.primary
-                    )
+                    shape = RoundedCornerShape(8.dp)
                 )
 
                 Spacer(modifier = Modifier.height(16.dp))
@@ -185,18 +162,25 @@ fun CreateRecompensaBody(
                 OutlinedTextField(
                     value = state.descripcion,
                     onValueChange = { onEvent(RecompensaUiEvent.OnDescripcionChange(it)) },
-                    label = { Text("Descripción") },
-                    isError = state.descripcionError != null,
-                    supportingText = state.descripcionError?.let {
-                        { Text(it, color = MaterialTheme.colorScheme.error) }
+                    label = { Text(text = "Descripción") },
+                    minLines = 3,
+                    modifier = Modifier.fillMaxWidth(),
+                    shape = RoundedCornerShape(8.dp)
+                )
+
+                Spacer(modifier = Modifier.height(16.dp))
+
+                OutlinedTextField(
+                    value = state.precio,
+                    onValueChange = { onEvent(RecompensaUiEvent.OnPrecioChange(it)) },
+                    label = { Text(text = "Costo (puntos)") },
+                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+                    isError = state.precioError != null,
+                    supportingText = state.precioError?.let {
+                        { Text(text = it, color = MaterialTheme.colorScheme.error) }
                     },
                     modifier = Modifier.fillMaxWidth(),
-                    minLines = 3,
-                    shape = RoundedCornerShape(8.dp),
-                    colors = OutlinedTextFieldDefaults.colors(
-                        unfocusedBorderColor = MaterialTheme.colorScheme.outline,
-                        focusedBorderColor = MaterialTheme.colorScheme.primary
-                    )
+                    shape = RoundedCornerShape(8.dp)
                 )
 
                 Spacer(modifier = Modifier.height(24.dp))
@@ -214,10 +198,7 @@ fun CreateRecompensaBody(
                     modifier = Modifier
                         .fillMaxWidth()
                         .height(50.dp),
-                    shape = RoundedCornerShape(25.dp),
-                    colors = ButtonDefaults.buttonColors(
-                        containerColor = MaterialTheme.colorScheme.primary
-                    )
+                    shape = RoundedCornerShape(25.dp)
                 ) {
                     if (state.isLoading) {
                         CircularProgressIndicator(
@@ -228,8 +209,7 @@ fun CreateRecompensaBody(
                         Text(
                             text = if (state.isEditing) "Actualizar" else "Guardar",
                             fontSize = 16.sp,
-                            fontWeight = FontWeight.Medium,
-                            color = MaterialTheme.colorScheme.onPrimary
+                            fontWeight = FontWeight.Medium
                         )
                     }
                 }
@@ -258,46 +238,15 @@ private fun ImageSelectorBox(
             .padding(16.dp),
         contentAlignment = Alignment.Center
     ) {
-        Column(
-            horizontalAlignment = Alignment.CenterHorizontally,
-            verticalArrangement = Arrangement.Center
-        ) {
-            if (selectedImage != null) {
-                Icon(
-                    Icons.Default.Check,
-                    contentDescription = "Imagen seleccionada",
-                    modifier = Modifier.size(48.dp),
-                    tint = MaterialTheme.colorScheme.primary
-                )
-                Spacer(modifier = Modifier.height(8.dp))
-                Text(
-                    text = "Imagen seleccionada:",
-                    fontSize = 14.sp,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant
-                )
-                Text(
-                    text = selectedImage,
-                    fontSize = 12.sp,
-                    color = MaterialTheme.colorScheme.primary
-                )
-            } else {
-                Icon(
-                    Icons.Default.Upload,
-                    contentDescription = "Subir imagen",
-                    modifier = Modifier.size(48.dp),
-                    tint = MaterialTheme.colorScheme.primary
-                )
-                Spacer(modifier = Modifier.height(8.dp))
-                Text(
-                    "Subir una imagen",
-                    fontSize = 14.sp,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant
-                )
-                Text(
-                    "Toca para seleccionar",
-                    fontSize = 12.sp,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.7f)
-                )
+        if (selectedImage != null) {
+            Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                Icon(Icons.Default.Check, contentDescription = null, tint = MaterialTheme.colorScheme.primary)
+                Text(selectedImage)
+            }
+        } else {
+            Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                Icon(Icons.Default.Upload, contentDescription = null, tint = MaterialTheme.colorScheme.primary)
+                Text("Subir una imagen")
             }
         }
     }
@@ -308,7 +257,25 @@ private fun ImageSelectorBox(
 fun CreateRecompensaScreenPreview() {
     TaskTallyTheme {
         CreateRecompensaBody(
-            state = RecompensaUiState(),
+            state = RecompensaUiState(mentorName = "Esthiber"),
+            onEvent = {}
+        )
+    }
+}
+
+@Preview(showBackground = true)
+@Composable
+fun CreateRecompensaScreenEditingPreview() {
+    TaskTallyTheme {
+        CreateRecompensaBody(
+            state = RecompensaUiState(
+                isEditing = true,
+                mentorName = "Esthiber",
+                titulo = "Helado",
+                descripcion = "Chocolate don alfonso",
+                precio = "50",
+                imgVector = "img23_ice_cream"
+            ),
             onEvent = {}
         )
     }
