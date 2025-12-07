@@ -3,7 +3,6 @@ package edu.ucne.tasktally.presentation
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
-import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.material3.Scaffold
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
@@ -20,7 +19,6 @@ import edu.ucne.tasktally.presentation.navigation.Screen
 import edu.ucne.tasktally.presentation.navigation.TaskTallyNavHost
 import edu.ucne.tasktally.ui.theme.TaskTallyTheme
 
-@OptIn(ExperimentalMaterial3ExpressiveApi::class)
 @Composable
 fun TaskTallyApp() {
     val navController = rememberNavController()
