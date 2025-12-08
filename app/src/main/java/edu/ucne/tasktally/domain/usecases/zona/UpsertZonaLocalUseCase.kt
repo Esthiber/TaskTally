@@ -1,4 +1,4 @@
-package edu.ucne.tasktally.domain.usecases
+package edu.ucne.tasktally.domain.usecases.zona
 
 import edu.ucne.tasktally.domain.models.Zona
 import edu.ucne.tasktally.domain.repository.ZonaRepository

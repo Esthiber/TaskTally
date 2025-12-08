@@ -4,7 +4,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
 import edu.ucne.tasktally.domain.usecases.mentor.zona.UpdateZoneCodeRemoteUseCase
-import edu.ucne.tasktally.domain.usecases.UpdateZoneNameLocalUseCase
+import edu.ucne.tasktally.domain.usecases.zona.UpdateZoneNameLocalUseCase
 import edu.ucne.tasktally.domain.usecases.auth.GetCurrentUserUseCase
 import edu.ucne.tasktally.domain.usecases.gema.zona.GetGemaZonaByIdUseCase
 import edu.ucne.tasktally.domain.usecases.mentor.zona.GetMentorZonaByIdUseCase
