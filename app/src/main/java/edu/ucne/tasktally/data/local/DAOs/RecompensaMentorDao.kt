@@ -9,16 +9,16 @@ import kotlinx.coroutines.flow.Flow
 
 @Dao
 interface RecompensaMentorDao {
-    @Query("SELECT * FROM recompensas_mentor ORDER BY recompensaId DESC")
+    @Query("SELECT * FROM recompensas_mentor WHERE isPendingDelete = 0 ORDER BY recompensaId DESC")
     fun observeAll(): Flow<List<RecompensaMentorEntity>>
 
-    @Query("SELECT * FROM recompensas_mentor WHERE recompensaId = :id")
+    @Query("SELECT * FROM recompensas_mentor WHERE recompensaId = :id AND isPendingDelete = 0")
     suspend fun getById(id: String?): RecompensaMentorEntity?
 
-    @Query("SELECT * FROM recompensas_mentor WHERE remoteId = :remoteId")
+    @Query("SELECT * FROM recompensas_mentor WHERE remoteId = :remoteId AND isPendingDelete = 0")
     suspend fun getByRemoteId(remoteId: Int?): RecompensaMentorEntity?
 
-    @Query("SELECT * FROM recompensas_mentor WHERE createdBy = :mentorId")
+    @Query("SELECT * FROM recompensas_mentor WHERE createdBy = :mentorId AND isPendingDelete = 0")
     fun observeByMentor(mentorId: Int): Flow<List<RecompensaMentorEntity>>
 
     @Query("SELECT * FROM recompensas_mentor WHERE isPendingCreate = 1")

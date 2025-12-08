@@ -4,7 +4,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
 import edu.ucne.tasktally.domain.usecases.gema.tareas.CompletarTareaUseCase
-import edu.ucne.tasktally.domain.usecases.gema.tareas.GetTareasGemaLocalUseCase
+import edu.ucne.tasktally.domain.usecases.gema.tareas.GetTareasGemaUseCase
 import edu.ucne.tasktally.domain.usecases.gema.tareas.IniciarTareaUseCase
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -15,7 +15,7 @@ import javax.inject.Inject
 
 @HiltViewModel
 class GemaTareasViewModel @Inject constructor(
-    private val getTareasGemaLocalUseCase: GetTareasGemaLocalUseCase,
+    private val getTareasUseCase: GetTareasGemaUseCase,
     private val iniciarTareaUseCase: IniciarTareaUseCase,
     private val completarTareaUseCase: CompletarTareaUseCase
 ) : ViewModel() {
@@ -37,7 +37,7 @@ class GemaTareasViewModel @Inject constructor(
         viewModelScope.launch {
             _uiState.update { it.copy(isLoading = true, errorMessage = null) }
             try {
-                val tareas = getTareasGemaLocalUseCase(
+                val tareas = getTareasUseCase(
                     gemaId = _uiState.value.gemaId,
                     dia = _uiState.value.selectedDay
                 )
@@ -84,7 +84,6 @@ class GemaTareasViewModel @Inject constructor(
             _uiState.update { it.copy(processingTaskId = tareaId) }
             try {
                 completarTareaUseCase(tareaId)
-                // Recargar tareas para mostrar el cambio de estado
                 loadTareas()
             } catch (e: Exception) {
                 _uiState.update {

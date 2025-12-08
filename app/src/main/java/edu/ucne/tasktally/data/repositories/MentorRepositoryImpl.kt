@@ -2,10 +2,14 @@ package edu.ucne.tasktally.data.repositories
 
 import edu.ucne.tasktally.data.local.DAOs.RecompensaMentorDao
 import edu.ucne.tasktally.data.local.DAOs.TareaMentorDao
+import edu.ucne.tasktally.data.local.DAOs.ZonaDao
 import edu.ucne.tasktally.data.mappers.toRecompensaMentorDomain
 import edu.ucne.tasktally.data.mappers.toRecompensaMentorEntity
 import edu.ucne.tasktally.data.mappers.toTareaMentorDomain
 import edu.ucne.tasktally.data.mappers.toTareaMentorEntity
+import edu.ucne.tasktally.data.mappers.toDomain
+import edu.ucne.tasktally.data.mappers.toEntity
+import edu.ucne.tasktally.data.mappers.toZonaDomain
 import edu.ucne.tasktally.data.remote.DTOs.mentor.tareas.BulkTareasRequest
 import edu.ucne.tasktally.data.remote.DTOs.mentor.tareas.BulkTareasResponse
 import edu.ucne.tasktally.data.remote.DTOs.mentor.tareas.TareaOperationDto
@@ -20,6 +24,7 @@ import edu.ucne.tasktally.data.remote.Resource
 import edu.ucne.tasktally.data.remote.TaskTallyApi
 import edu.ucne.tasktally.domain.models.RecompensaMentor
 import edu.ucne.tasktally.domain.models.TareaMentor
+import edu.ucne.tasktally.domain.models.Zona
 import edu.ucne.tasktally.domain.repository.MentorRepository
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
@@ -28,6 +33,7 @@ import javax.inject.Inject
 class MentorRepositoryImpl @Inject constructor(
     private val tareaDao: TareaMentorDao,
     private val recompensaDao: RecompensaMentorDao,
+    private val zonaDao: ZonaDao,
     private val api: TaskTallyApi
 ) : MentorRepository {
 
@@ -37,12 +43,24 @@ class MentorRepositoryImpl @Inject constructor(
             list.map { it.toTareaMentorDomain() }
         }
 
+    override fun observeTareasByMentor(mentorId: Int): Flow<List<TareaMentor>> =
+        tareaDao.observeByMentor(mentorId).map { list ->
+            list.map { it.toTareaMentorDomain() }
+        }
+
+    override suspend fun getTareaById(id: String): TareaMentor? =
+        tareaDao.getById(id)?.toTareaMentorDomain()
+
     override suspend fun createTareaLocal(tarea: TareaMentor) {
         tareaDao.upsert(tarea.toTareaMentorEntity())
     }
 
     override suspend fun updateTareaLocal(tarea: TareaMentor) {
         tareaDao.upsert(tarea.copy(isPendingUpdate = true).toTareaMentorEntity())
+    }
+
+    override suspend fun deleteTareaLocal(tarea: TareaMentor) {
+        tareaDao.upsert(tarea.copy(isPendingDelete = true).toTareaMentorEntity())
     }
     //endregion
 
@@ -52,6 +70,14 @@ class MentorRepositoryImpl @Inject constructor(
             list.map { it.toRecompensaMentorDomain() }
         }
 
+    override fun observeRecompensasByMentor(mentorId: Int): Flow<List<RecompensaMentor>> =
+        recompensaDao.observeByMentor(mentorId).map { list ->
+            list.map { it.toRecompensaMentorDomain() }
+        }
+
+    override suspend fun getRecompensaById(id: String): RecompensaMentor? =
+        recompensaDao.getById(id)?.toRecompensaMentorDomain()
+
     override suspend fun createRecompensaLocal(recompensa: RecompensaMentor) {
         recompensaDao.upsert(recompensa.toRecompensaMentorEntity())
     }
@@ -59,22 +85,43 @@ class MentorRepositoryImpl @Inject constructor(
     override suspend fun updateRecompensaLocal(recompensa: RecompensaMentor) {
         recompensaDao.upsert(recompensa.copy(isPendingUpdate = true).toRecompensaMentorEntity())
     }
+
+    override suspend fun deleteRecompensaLocal(recompensa: RecompensaMentor) {
+        recompensaDao.upsert(recompensa.copy(isPendingDelete = true).toRecompensaMentorEntity())
+    }
     //endregion
 
     //region zona
-    override suspend fun getZoneInfo(mentorId: Int): Resource<ZoneInfoMentorResponse> {
+    override suspend fun getZoneInfo(zoneId: Int): Zona {
         return try {
-            val response = api.obtenerInformacionZona(mentorId)
+            val response = api.obtenerInformacionZona(zoneId)
             if (response.isSuccessful) {
-                response.body()?.let {
-                    Resource.Success(it)
-                } ?: Resource.Error("Response body is null")
+                response.body()?.let { zoneInfo ->
+                    val zona = zoneInfo.toZonaDomain().copy(zonaId = zoneId)
+
+                    zonaDao.upsert(zona.toEntity())
+
+
+                    zona
+                } ?: run {
+                    getLocalZoneInfo(zoneId)
+                }
             } else {
-                Resource.Error("API call failed: ${response.errorBody()?.string()}")
+                getLocalZoneInfo(zoneId)
             }
         } catch (e: Exception) {
-            Resource.Error("Exception occurred: ${e.message}")
+            getLocalZoneInfo(zoneId)
         }
+    }
+
+    private suspend fun getLocalZoneInfo(zoneId: Int): Zona {
+        return zonaDao.getById(zoneId)?.toDomain() ?: Zona(
+            zonaId = zoneId,
+            nombre = "",
+            joinCode = "",
+            mentorId = "",
+            gemas = emptyList()
+        )
     }
 
     override suspend fun updateZoneCode(mentorId: Int): Resource<UpdateZoneCodeResponse> {

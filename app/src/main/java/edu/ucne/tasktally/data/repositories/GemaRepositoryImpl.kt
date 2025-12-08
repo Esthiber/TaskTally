@@ -2,8 +2,12 @@ package edu.ucne.tasktally.data.repositories
 
 import edu.ucne.tasktally.data.local.DAOs.RecompensaGemaDao
 import edu.ucne.tasktally.data.local.DAOs.TareaGemaDao
-import edu.ucne.tasktally.data.mappers.toRecompensaGemaDomain
+import edu.ucne.tasktally.data.local.DAOs.ZonaDao
 import edu.ucne.tasktally.data.mappers.toTareaGemaDomain
+import edu.ucne.tasktally.data.mappers.toZonaDomain
+import edu.ucne.tasktally.data.mappers.toDomain
+import edu.ucne.tasktally.data.mappers.toEntity
+import edu.ucne.tasktally.data.mappers.toRecompensaGemaDomain
 import edu.ucne.tasktally.data.remote.DTOs.gema.recompensa.CanjearRecompensaRequest
 import edu.ucne.tasktally.data.remote.DTOs.gema.tarea.BulkUpdateTareasResponse
 import edu.ucne.tasktally.data.remote.DTOs.gema.tarea.UpdateTareaEstadoRequest
@@ -11,6 +15,7 @@ import edu.ucne.tasktally.data.remote.Resource
 import edu.ucne.tasktally.data.remote.TaskTallyApi
 import edu.ucne.tasktally.domain.models.RecompensaGema
 import edu.ucne.tasktally.domain.models.TareaGema
+import edu.ucne.tasktally.domain.models.Zona
 import edu.ucne.tasktally.domain.repository.GemaRepository
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
@@ -19,6 +24,7 @@ import javax.inject.Inject
 class GemaRepositoryImpl @Inject constructor(
     private val tareaDao: TareaGemaDao,
     private val gemaDao: RecompensaGemaDao,
+    private val zonaDao: ZonaDao,
     private val api: TaskTallyApi
 ) : GemaRepository {
 
@@ -28,11 +34,14 @@ class GemaRepositoryImpl @Inject constructor(
             list.map { it.toTareaGemaDomain() }
         }
 
-    override suspend fun IniciarTareaGema(tareaId: String) {
+    override suspend fun getTareasGemaLocal(gemaId: Int, dia: String?): List<TareaGema> =
+        tareaDao.getTareasGemaLocal(gemaId, dia).map { it.toTareaGemaDomain() }
+
+    override suspend fun iniciarTareaGema(tareaId: String) {
         tareaDao.iniciarTarea(tareaId)
     }
 
-    override suspend fun FinalizarTareaGema(tareaId: String) {
+    override suspend fun completarTareaGema(tareaId: String) {
         tareaDao.completarTarea(tareaId)
     }
     //endregion
@@ -43,14 +52,53 @@ class GemaRepositoryImpl @Inject constructor(
             list.map { it.toRecompensaGemaDomain() }
         }
 
-    override suspend fun CanjearRecompensa(recompensaId: String) {
+    override suspend fun canjearRecompensa(recompensaId: String, gemaId: Int) {
         val recompensa = gemaDao.getById(recompensaId)
         recompensa?.let {
-            val updatedRecompensa = it.copy(isPendingUpdate = true)
+            val updatedRecompensa = it.copy(
+                isPendingUpdate = true,
+                perteneceA = gemaId
+            )
             gemaDao.upsert(updatedRecompensa)
         }
     }
     //endregion
+
+    override suspend fun getZoneInfo(zoneId: Int): Zona {
+        return try {
+            val response = api.obtenerInformacionZonas(zoneId)
+            if (response.isSuccessful) {
+                response.body()?.let { zoneInfoList ->
+                    zoneInfoList.firstOrNull()?.let { zoneInfo ->
+                        val zona = zoneInfo.toZonaDomain()
+
+                        zonaDao.upsert(zona.toEntity())
+
+                        zona
+                    } ?: run {
+
+                        getLocalZoneInfo(zoneId)
+                    }
+                } ?: run {
+                    getLocalZoneInfo(zoneId)
+                }
+            } else {
+                getLocalZoneInfo(zoneId)
+            }
+        } catch (e: Exception) {
+            getLocalZoneInfo(zoneId)
+        }
+    }
+
+    private suspend fun getLocalZoneInfo(zoneId: Int): Zona {
+        return zonaDao.getById(zoneId)?.toDomain() ?: Zona(
+            zonaId = 0,
+            nombre = "",
+            joinCode = "",
+            mentorId = "",
+            gemas = emptyList()
+        )
+    }
 
     override suspend fun postPendingEstadosTareas(): Resource<BulkUpdateTareasResponse> {
         return try {
@@ -106,7 +154,7 @@ class GemaRepositoryImpl @Inject constructor(
                 recompensa.remoteId?.let { remoteId ->
                     val canjearRequest = CanjearRecompensaRequest(
                         recompensaId = remoteId,
-                        gemaId = 0 // TODO Obtener gema id
+                        gemaId = recompensa.perteneceA ?: 0
                     )
 
                     val response = api.canjearRecompensa(canjearRequest)

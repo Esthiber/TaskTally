@@ -30,7 +30,8 @@ class AuthRepository @Inject constructor(
                         expiresAt = loginResponse.expiresAt,
                         role = loginResponse.user.role,
                         mentorId = loginResponse.user.mentorId,
-                        gemaId = loginResponse.user.gemaId
+                        gemaId = loginResponse.user.gemaId,
+                        zoneId = loginResponse.user.zoneId
                     )
                     Resource.Success(loginResponse)
                 } else {
@@ -119,16 +120,20 @@ class AuthRepository @Inject constructor(
             combine(
                 authPreferencesManager.role,
                 authPreferencesManager.mentorId,
-                authPreferencesManager.gemaId
-            ) { role, mentorId, gemaId -> Triple(role, mentorId, gemaId) }
+                authPreferencesManager.gemaId,
+                authPreferencesManager.zoneId
+            ) { role, mentorId, gemaId, zoneId ->
+                listOf(role, mentorId, gemaId, zoneId)
+            }
         ) { userBasic, userRole ->
             UserData(
                 userId = userBasic.first,
                 username = userBasic.second,
                 email = userBasic.third,
-                role = userRole.first,
-                mentorId = userRole.second,
-                gemaId = userRole.third
+                role = userRole[0] as String?,
+                mentorId = userRole[1] as Int?,
+                gemaId = userRole[2] as Int?,
+                zoneId = userRole[3] as Int?
             )
         }
     }
@@ -166,5 +171,6 @@ data class UserData(
     val email: String?,
     val role: String?,
     val mentorId: Int?,
-    val gemaId: Int?
+    val gemaId: Int?,
+    val zoneId: Int?
 )

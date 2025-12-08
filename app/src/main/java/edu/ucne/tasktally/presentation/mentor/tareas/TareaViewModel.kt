@@ -3,11 +3,11 @@ package edu.ucne.tasktally.presentation.mentor.tareas
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
-import edu.ucne.tasktally.data.local.preferences.AuthPreferencesManager
 import edu.ucne.tasktally.domain.models.TareaMentor
-import edu.ucne.tasktally.domain.usecases.GetTareaMentorUseCase
-import edu.ucne.tasktally.domain.usecases.UpsertTareaMentorUseCase
+import edu.ucne.tasktally.domain.usecases.auth.GetCurrentUserUseCase
 import edu.ucne.tasktally.domain.usecases.mentor.tarea.CreateTareaMentorLocalUseCase
+import edu.ucne.tasktally.domain.usecases.mentor.tarea.GetTareaMentorByIdLocalUseCase
+import edu.ucne.tasktally.domain.usecases.mentor.tarea.UpdateTareaMentorLocalUseCase
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.first
@@ -19,9 +19,9 @@ import javax.inject.Inject
 @HiltViewModel
 class TareaViewModel @Inject constructor(
     private val createTareaMentorLocalUseCase: CreateTareaMentorLocalUseCase,
-    private val getTareaMentorUseCase: GetTareaMentorUseCase,
-    private val upsertTareaMentorUseCase: UpsertTareaMentorUseCase,
-    private val authPreferencesManager: AuthPreferencesManager
+    private val getTareaByIdUseCase: GetTareaMentorByIdLocalUseCase,
+    private val updateTareaMentorUseCase: UpdateTareaMentorLocalUseCase,
+    private val getCurrentUserUseCase: GetCurrentUserUseCase
 ) : ViewModel() {
 
     private val _state = MutableStateFlow(TareaUiState())
@@ -33,7 +33,8 @@ class TareaViewModel @Inject constructor(
 
     private fun loadMentorName() {
         viewModelScope.launch {
-            val username = authPreferencesManager.username.first() ?: "Mentor"
+            val userData = getCurrentUserUseCase().first()
+            val username = userData.username ?: "Mentor"
             _state.update { it.copy(mentorName = username) }
         }
     }
@@ -67,7 +68,7 @@ class TareaViewModel @Inject constructor(
             _state.update { it.copy(isLoading = true, isEditing = true) }
 
             try {
-                val tarea = getTareaMentorUseCase(id)
+                val tarea = getTareaByIdUseCase(id)
 
                 if (tarea != null) {
                     _state.update {
@@ -100,7 +101,8 @@ class TareaViewModel @Inject constructor(
         viewModelScope.launch {
             _state.update { it.copy(isLoading = true, error = null) }
 
-            val mentorId = authPreferencesManager.mentorId.first()
+            val userData = getCurrentUserUseCase().first()
+            val mentorId = userData.mentorId
 
             if (mentorId == null) {
                 _state.update { it.copy(isLoading = false, error = "No se encontró ID mentor") }
@@ -155,7 +157,7 @@ class TareaViewModel @Inject constructor(
                 isPendingUpdate = true
             )
 
-            upsertTareaMentorUseCase(tarea)
+            updateTareaMentorUseCase(tarea)
 
             _state.update {
                 it.copy(
