@@ -8,7 +8,7 @@ import edu.ucne.tasktally.data.local.entidades.RecompensaMentorEntity
 import kotlinx.coroutines.flow.Flow
 
 @Dao
-interface RecompensaDao {
+interface RecompensaMentorDao {
     @Query("SELECT * FROM recompensas_mentor ORDER BY recompensaId DESC")
     fun observeAll(): Flow<List<RecompensaMentorEntity>>
 

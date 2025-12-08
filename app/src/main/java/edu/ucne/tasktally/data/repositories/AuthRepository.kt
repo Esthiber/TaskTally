@@ -5,6 +5,7 @@ import edu.ucne.tasktally.data.remote.AuthApi
 import edu.ucne.tasktally.data.remote.DTOs.auth.*
 import edu.ucne.tasktally.data.remote.Resource
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.first
 import javax.inject.Inject
 import javax.inject.Singleton
@@ -109,13 +110,13 @@ class AuthRepository @Inject constructor(
     fun getAccessToken(): Flow<String?> = authPreferencesManager.accessToken
 
     fun getCurrentUser(): Flow<UserData> {
-        return kotlinx.coroutines.flow.combine(
-            kotlinx.coroutines.flow.combine(
+        return combine(
+            combine(
                 authPreferencesManager.userId,
                 authPreferencesManager.username,
                 authPreferencesManager.email
             ) { userId, username, email -> Triple(userId, username, email) },
-            kotlinx.coroutines.flow.combine(
+            combine(
                 authPreferencesManager.role,
                 authPreferencesManager.mentorId,
                 authPreferencesManager.gemaId

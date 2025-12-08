@@ -22,6 +22,7 @@ import edu.ucne.tasktally.data.remote.DTOs.mentor.zone.UpdateZoneResponse
 import edu.ucne.tasktally.data.remote.DTOs.mentor.recompensa.CreateRecompensaRequest
 import edu.ucne.tasktally.data.remote.DTOs.mentor.recompensa.RecompensaDto
 import edu.ucne.tasktally.data.remote.DTOs.mentor.recompensa.UpdateRecompensaRequest
+import edu.ucne.tasktally.data.remote.DTOs.mentor.zone.UpdateZoneCodeResponse
 import edu.ucne.tasktally.data.remote.DTOs.mentor.zone.ZoneInfoMentorResponse
 import retrofit2.Response
 import retrofit2.http.*
@@ -104,7 +105,7 @@ interface TaskTallyApi {
     suspend fun bulkRecompensas(@Body request: BulkRecompensasRequest): Response<BulkRecompensasResponse>
 
     @POST("api/Mentors/{mentorId}/zone/update-code")
-    suspend fun updateZoneCode(@Path("mentorId") mentorId: Int): Response<Unit>
+    suspend fun updateZoneCode(@Path("mentorId") mentorId: Int): Response<UpdateZoneCodeResponse>
 
     @PUT("api/Mentors/{mentorId}/zone/name")
     suspend fun updateZoneName(
