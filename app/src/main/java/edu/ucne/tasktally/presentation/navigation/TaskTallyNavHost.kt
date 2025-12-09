@@ -76,7 +76,8 @@ fun TaskTallyNavHost(
 
         composable<Screen.ZoneAccess> {
             ZoneAccessScreen(
-                onZoneAccessGranted = { loginViewModel.refreshZoneAccess() }
+                onZoneAccessGranted = { loginViewModel.refreshZoneAccess() },
+                onLogout = { loginViewModel.onLogoutClick() }
             )
         }
 
