@@ -32,66 +32,66 @@ Usuario hijo/hija encargado de completar tareas y canjear puntos por recompensas
 
 ### 👨‍💼 Mentor
 
-- ** Iniciar Sesión:**  
+- **Iniciar Sesión:**  
   Acceso mediante usuario y contraseña.
 
-- ** Registrarse:**  
+- **Registrarse:**  
   Creación de una cuenta nueva seleccionando el rol de Mentor.
 
-- ** Lista de Tareas:**  
+- **Lista de Tareas:**  
   - Ver todas las tareas creadas
   - Editar o eliminar tareas existentes
 
-- ** Crear Tarea:**  
+- **Crear Tarea:**  
   Formulario para registrar nuevas tareas.
 
-- ** Tienda (Recompensas):**  
+- **Tienda (Recompensas):**  
   - Ver todas las recompensas creadas
   - Editar o eliminar recompensas
 
-- ** Crear Recompensa:**  
+- **Crear Recompensa:**  
   Formulario para registrar nuevas recompensas.
 
-- ** Gestión de Zona:**  
+- **Gestión de Zona:**  
   - Administrar la zona familiar
   - Ver código de acceso
   - Gestionar las Gemas unidas
 
-- ** Cerrar Sesión:**  
+- **Cerrar Sesión:**  
   Cerrar sesión como Mentor.
 
 ---
 
 ### 💎 Gema
 
-- ** Iniciar Sesión:**  
+- **Iniciar Sesión:**  
   Acceso mediante usuario y contraseña.
 
-- ** Registrarse:**  
+- **Registrarse:**  
   Crear una cuenta seleccionando el rol de Gema.
 
-- ** Unirse a Zona:**  
+- **Unirse a Zona:**  
   Ingresar el código proporcionado por el mentor para acceder a la zona familiar.
 
-- ** Mis Tareas:**  
+- **Mis Tareas:**  
   Ver todas las tareas asignadas con sus estados:
   - Pendiente
   - Iniciada
   - Completada
 
-- ** Iniciar Tarea:**  
+- **Iniciar Tarea:**  
   Cambiar el estado de una tarea de "pendiente" a "iniciada".
 
-- ** Completar Tarea:**  
+- **Completar Tarea:**  
   Marcar una tarea como completada y recibir los puntos correspondientes.
 
-- ** Filtrar por Fecha:**  
+- **Filtrar por Fecha:**  
   Filtrar las tareas según el día asignado.
 
-- ** Tienda:**  
+- **Tienda:**  
   Ver todas las recompensas disponibles creadas por el Mentor.
 
-- ** Canjear Recompensa:**  
+- **Canjear Recompensa:**  
   Al canjear, se muestra:
   - Costo en puntos
   - Puntos actuales
