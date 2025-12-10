@@ -55,7 +55,8 @@ interface TaskTallyApi {
     //region Acciones Mentor
     @GET("api/Mentors/{mentorId}/tareas-recompensas")
     suspend fun getTareasRecompensasMentor(
-        @Path("mentorId") mentorId: Int ): Response<List<MentorTareasRecompensasResponse>>
+        @Path("mentorId") mentorId: Int
+    ): Response<List<MentorTareasRecompensasResponse>>
 
 
     @POST("api/Mentors/{mentorId}/tareas")
@@ -111,10 +112,16 @@ interface TaskTallyApi {
         @Body request: UpdateZoneRequest
     ): Response<UpdateZoneResponse>
 
-    @GET("api/Mentors/Zones/{zoneId}/info")
-    suspend fun obtenerMentorInfoZona(@Path("zoneId") zoneId: Int): Response<ZoneInfoMentorResponse>
+    @GET("api/Mentors/{mentorId}/Zones/{zoneId}/info")
+    suspend fun obtenerMentorInfoZona(
+        @Path("mentorId") mentorId: Int,
+        @Path("zoneId") zoneId: Int
+    ): Response<ZoneInfoMentorResponse>
 
-    @GET("api/Gemas/Zones/{zoneId}/info")
-    suspend fun obtenerGemaInfoZona(@Path("zoneId") zoneId: Int): Response<ZoneInfoGemaResponse>
+    @GET("api/Gemas/{gemaId}/Zones/{zoneId}/info")
+    suspend fun obtenerGemaInfoZona(
+        @Path("gemaId") gemaId: Int,
+        @Path("zoneId") zoneId: Int
+    ): Response<ZoneInfoGemaResponse>
 //endregion
 }

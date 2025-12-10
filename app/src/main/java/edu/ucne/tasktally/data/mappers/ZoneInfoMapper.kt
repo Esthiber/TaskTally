@@ -30,7 +30,7 @@ fun GemaInfoDto.toGemaDomain(): Gema {
     return Gema(
         gemaId = gemaId.toString(),
         remoteId = gemaId,
-        nombre = gemaNombre,
+        nombre = nombre,
         apellido = null,
         fechaNacimiento = null,
         puntosActuales = 0,

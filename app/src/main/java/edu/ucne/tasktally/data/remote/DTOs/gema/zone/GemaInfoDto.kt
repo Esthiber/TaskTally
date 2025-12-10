@@ -5,5 +5,5 @@ import com.squareup.moshi.JsonClass
 @JsonClass(generateAdapter = true)
 data class GemaInfoDto(
     val gemaId: Int,
-    val gemaNombre: String = ""
+    val nombre: String = ""
 )

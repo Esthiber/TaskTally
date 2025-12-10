@@ -92,9 +92,9 @@ class MentorRepositoryImpl @Inject constructor(
     //endregion
 
     //region zona
-    override suspend fun getZoneInfo(zoneId: Int): Zona {
+    override suspend fun getZoneInfo(mentorId: Int, zoneId: Int): Zona {
         return try {
-            val response = api.obtenerMentorInfoZona(zoneId)
+            val response = api.obtenerMentorInfoZona(mentorId,zoneId)
             if (response.isSuccessful) {
                 response.body()?.let { zoneInfo ->
                     val zona = zoneInfo.toZonaDomain().copy(zonaId = zoneId)
@@ -138,9 +138,8 @@ class MentorRepositoryImpl @Inject constructor(
         }
     }
 
-    override suspend fun updateZoneName(zoneName: String): Resource<UpdateZoneResponse> {
+    override suspend fun updateZoneName(mentorId: Int, zoneName: String): Resource<UpdateZoneResponse> {
         return try {
-            val mentorId = 0 //TODO obtener mentor id
             val request = UpdateZoneRequest(zoneName)
             val response = api.updateZoneName(mentorId, request)
 
@@ -156,6 +155,60 @@ class MentorRepositoryImpl @Inject constructor(
         }
     }
     //endregion
+
+    override suspend fun getTareasRecompensasMentor(mentorId: Int): Resource<Unit> {
+        return try {
+            val response = api.getTareasRecompensasMentor(mentorId)
+            if (response.isSuccessful) {
+                response.body()?.let { tareasRecompensasList ->
+                    tareasRecompensasList.forEach { mentorData ->
+                        // Save tareas
+                        mentorData.tareas?.forEach { tareaDto ->
+                            val tarea = TareaMentor(
+                                tareaId = tareaDto.tareasGroupId?.toString() ?: "",
+                                titulo = tareaDto.titulo ?: "",
+                                descripcion = tareaDto.descripcion ?: "",
+                                puntos = tareaDto.puntos ?: 0,
+                                recurrente = tareaDto.recurrente ?: false,
+                                dias = tareaDto.dias ?: "",
+                                nombreImgVector = tareaDto.nombreImgVector ?: "",
+                                mentorId = mentorId,
+                                tareasGroupId = tareaDto.tareasGroupId,
+                                remoteId = tareaDto.tareasGroupId,
+                                isPendingCreate = false,
+                                isPendingUpdate = false,
+                                isPendingDelete = false
+                            )
+                            tareaDao.upsert(tarea.toTareaMentorEntity())
+                        }
+
+                        // Save recompensas
+                        mentorData.recompensas?.forEach { recompensaDto ->
+                            val recompensa = RecompensaMentor(
+                                recompensaId = recompensaDto.recompensaId?.toString() ?: "",
+                                titulo = recompensaDto.titulo ?: "",
+                                descripcion = recompensaDto.descripcion ?: "",
+                                precio = recompensaDto.precio ?: 0,
+                                isDisponible = recompensaDto.isDisponible ?: true,
+                                nombreImgVector = recompensaDto.nombreImgVector ?: "",
+                                createdBy = mentorId,
+                                remoteId = recompensaDto.recompensaId,
+                                isPendingCreate = false,
+                                isPendingUpdate = false,
+                                isPendingDelete = false
+                            )
+                            recompensaDao.upsert(recompensa.toRecompensaMentorEntity())
+                        }
+                    }
+                    Resource.Success(Unit)
+                } ?: Resource.Error("Response body is null")
+            } else {
+                Resource.Error("Failed to fetch tareas and recompensas: ${response.errorBody()?.string()}")
+            }
+        } catch (e: Exception) {
+            Resource.Error("Exception occurred: ${e.message}")
+        }
+    }
 
     override suspend fun postPendingTareas(): Resource<BulkTareasResponse> {
         return try {
@@ -239,7 +292,8 @@ class MentorRepositoryImpl @Inject constructor(
                         when (result.accion) {
                             "create" -> {
                                 if (result.success && result.tareasGroupId != null) {
-                                    val localTarea = pendingCreateTareas.find { it.titulo == result.titulo }
+                                    val localTarea =
+                                        pendingCreateTareas.find { it.titulo == result.titulo }
                                     localTarea?.let {
                                         val updatedTarea = it.copy(
                                             remoteId = result.tareasGroupId,
@@ -250,18 +304,22 @@ class MentorRepositoryImpl @Inject constructor(
                                     }
                                 }
                             }
+
                             "update" -> {
                                 if (result.success && result.tareasGroupId != null) {
-                                    val localTarea = pendingUpdateTareas.find { it.tareasGroupId == result.tareasGroupId }
+                                    val localTarea =
+                                        pendingUpdateTareas.find { it.tareasGroupId == result.tareasGroupId }
                                     localTarea?.let {
                                         val updatedTarea = it.copy(isPendingUpdate = false)
                                         tareaDao.upsert(updatedTarea)
                                     }
                                 }
                             }
+
                             "delete" -> {
                                 if (result.success && result.tareasGroupId != null) {
-                                    val localTarea = pendingDeleteTareas.find { it.tareasGroupId == result.tareasGroupId }
+                                    val localTarea =
+                                        pendingDeleteTareas.find { it.tareasGroupId == result.tareasGroupId }
                                     localTarea?.let {
                                         tareaDao.delete(it)
                                     }
@@ -356,7 +414,8 @@ class MentorRepositoryImpl @Inject constructor(
                         when (result.accion) {
                             "create" -> {
                                 if (result.success && result.recompensaId != null) {
-                                    val localRecompensa = pendingCreateRecompensas.find { it.titulo == result.titulo }
+                                    val localRecompensa =
+                                        pendingCreateRecompensas.find { it.titulo == result.titulo }
                                     localRecompensa?.let {
                                         val updatedRecompensa = it.copy(
                                             remoteId = result.recompensaId,
@@ -366,18 +425,22 @@ class MentorRepositoryImpl @Inject constructor(
                                     }
                                 }
                             }
+
                             "update" -> {
                                 if (result.success && result.recompensaId != null) {
-                                    val localRecompensa = pendingUpdateRecompensas.find { it.remoteId == result.recompensaId }
+                                    val localRecompensa =
+                                        pendingUpdateRecompensas.find { it.remoteId == result.recompensaId }
                                     localRecompensa?.let {
                                         val updatedRecompensa = it.copy(isPendingUpdate = false)
                                         recompensaDao.upsert(updatedRecompensa)
                                     }
                                 }
                             }
+
                             "delete" -> {
                                 if (result.success && result.recompensaId != null) {
-                                    val localRecompensa = pendingDeleteRecompensas.find { it.remoteId == result.recompensaId }
+                                    val localRecompensa =
+                                        pendingDeleteRecompensas.find { it.remoteId == result.recompensaId }
                                     localRecompensa?.let {
                                         recompensaDao.delete(it)
                                     }

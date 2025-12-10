@@ -20,7 +20,7 @@ interface GemaRepository {
     suspend fun canjearRecompensa(recompensaId: String, gemaId: Int)
     //endregion
 
-    suspend fun getZoneInfo(zoneId: Int) : Zona
+    suspend fun getZoneInfo(gemaId: Int, zoneId: Int) : Zona
 
     suspend fun postPendingEstadosTareas(): Resource<BulkUpdateTareasResponse>
     suspend fun postPendingCanjearRecompensas(): Resource<Unit>

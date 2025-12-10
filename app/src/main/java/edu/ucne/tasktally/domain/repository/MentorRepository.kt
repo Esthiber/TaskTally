@@ -36,11 +36,12 @@ interface MentorRepository {
     //endregion
 
     //region zona
-    suspend fun getZoneInfo(zoneId: Int): Zona
+    suspend fun getZoneInfo(mentorId: Int, zoneId: Int): Zona
     suspend fun updateZoneCode(mentorId: Int): Resource<UpdateZoneCodeResponse>
-    suspend fun updateZoneName(zoneName: String): Resource<UpdateZoneResponse>
+    suspend fun updateZoneName(mentorId: Int, zoneName: String): Resource<UpdateZoneResponse>
     //endregion
 
+    suspend fun getTareasRecompensasMentor(mentorId: Int): Resource<Unit>
     suspend fun postPendingTareas(): Resource<BulkTareasResponse>
     suspend fun postPendingRecompensas(): Resource<BulkRecompensasResponse>
 
