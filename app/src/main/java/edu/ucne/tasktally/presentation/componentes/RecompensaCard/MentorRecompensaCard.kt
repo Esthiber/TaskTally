@@ -145,7 +145,6 @@ private fun getDrawableResourceId(imageName: String?): Int? {
         "img3_little_plant" -> R.drawable.img3_little_plant
         "img5_purple_flower" -> R.drawable.img5_purple_flower
         "img6_purple_plant" -> R.drawable.img6_purple_plant
-        "img7_green_tree" -> R.drawable.img7_green_tree
         "img8_green_leaves" -> R.drawable.img8_green_leaves
         "img9_color_leaves" -> R.drawable.img9_color_leaves
 
