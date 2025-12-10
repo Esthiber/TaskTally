@@ -14,9 +14,6 @@ interface MentorDao {
     @Query("SELECT * FROM tareas_mentor WHERE isPendingDelete = 0 ORDER BY tareaId DESC")
     fun observeTodasLasTareasMentor(): Flow<List<TareaMentorEntity>>
 
-    @Query("SELECT * FROM tareas_mentor ORDER BY tareaId DESC")
-    fun observeAllTareasMentor(): Flow<List<TareaMentorEntity>> // TODO ELIMINAR ES REDUNDANTE
-
     @Query("SELECT * FROM tareas_mentor WHERE tareaId = :id AND isPendingDelete = 0")
     suspend fun obtenerTareaMentorPorId(id: String?): TareaMentorEntity?
 

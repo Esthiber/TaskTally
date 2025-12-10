@@ -20,6 +20,7 @@ import edu.ucne.tasktally.data.remote.DTOs.mentor.zone.UpdateZoneRequest
 import edu.ucne.tasktally.data.remote.DTOs.mentor.zone.UpdateZoneResponse
 import edu.ucne.tasktally.data.remote.Resource
 import edu.ucne.tasktally.data.remote.TaskTallyApi
+import edu.ucne.tasktally.data.util.RepositoryConstants
 import edu.ucne.tasktally.domain.models.RecompensaMentor
 import edu.ucne.tasktally.domain.models.TareaMentor
 import edu.ucne.tasktally.domain.models.Zona
@@ -76,7 +77,6 @@ class MentorRepositoryImpl @Inject constructor(
         mentorDao.obtenerRecompensaMentorPorId(id)?.toRecompensaMentorDomain()
 
     override suspend fun createRecompensaLocal(recompensa: RecompensaMentor) {
-        // If the recompensa already has a remoteId, it should be treated as an update, not create
         val recompensaToSave = if (recompensa.remoteId != null) {
             recompensa.copy(isPendingCreate = false, isPendingUpdate = true)
         } else {
@@ -98,7 +98,7 @@ class MentorRepositoryImpl @Inject constructor(
     }
 
     override suspend fun deleteAllRecompensasLocal() {
-        mentorDao.observeTodasLasRecompensasMentor().collect { list -> // TODO REVISAR
+        mentorDao.observeTodasLasRecompensasMentor().collect { list ->
             list.forEach {
                 mentorDao.upsertRecompensa(
                     it.copy(isPendingDelete = true)
@@ -146,12 +146,12 @@ class MentorRepositoryImpl @Inject constructor(
             if (response.isSuccessful) {
                 response.body()?.let {
                     Resource.Success(it)
-                } ?: Resource.Error("Response body is null")
+                } ?: Resource.Error(RepositoryConstants.ERROR_NULL_RESPONSE_BODY)
             } else {
-                Resource.Error("No se pudo actualizar zone code: ${response.errorBody()?.string()}")
+                Resource.Error("${RepositoryConstants.ERROR_UPDATE_ZONE_CODE}${response.errorBody()?.string()}")
             }
         } catch (e: Exception) {
-            Resource.Error("Exception occurred: ${e.message}")
+            Resource.Error("${RepositoryConstants.ERROR_EXCEPTION_OCCURRED}${e.message}")
         }
     }
 
@@ -166,19 +166,19 @@ class MentorRepositoryImpl @Inject constructor(
             if (response.isSuccessful) {
                 response.body()?.let {
                     Resource.Success(it)
-                } ?: Resource.Error("Response body is null")
+                } ?: Resource.Error(RepositoryConstants.ERROR_NULL_RESPONSE_BODY)
             } else {
-                Resource.Error("No se pudo actualizar name: ${response.errorBody()?.string()}")
+                Resource.Error("${RepositoryConstants.ERROR_UPDATE_ZONE_NAME}${response.errorBody()?.string()}")
             }
         } catch (e: Exception) {
-            Resource.Error("Exception occurred: ${e.message}")
+            Resource.Error("${RepositoryConstants.ERROR_EXCEPTION_OCCURRED}${e.message}")
         }
     }
     //endregion
 
     override suspend fun getTareasRecompensasMentor(mentorId: Int): Resource<Unit> {
         if (mentorId == 0) {
-            return Resource.Error("No mentorId found")
+            return Resource.Error(RepositoryConstants.ERROR_NO_MENTOR_ID)
         }
         return try {
             val response = api.getTareasRecompensasMentor(mentorId)
@@ -224,22 +224,22 @@ class MentorRepositoryImpl @Inject constructor(
                         mentorDao.upsertRecompensa(recompensa.toRecompensaMentorEntity())
                     }
                     Resource.Success(Unit)
-                } ?: Resource.Error("Response body is null")
+                } ?: Resource.Error(RepositoryConstants.ERROR_NULL_RESPONSE_BODY)
             } else {
                 Resource.Error(
-                    "Failed to fetch tareas and recompensas: ${
+                    "${RepositoryConstants.ERROR_FETCH_TAREAS_RECOMPENSAS}${
                         response.errorBody()?.string()
                     }"
                 )
             }
         } catch (e: Exception) {
-            Resource.Error("Exception occurred: ${e.message}")
+            Resource.Error("${RepositoryConstants.ERROR_EXCEPTION_OCCURRED}${e.message}")
         }
     }
 
     override suspend fun postPendingTareas(zoneId:Int,mentorId: Int): Resource<BulkTareasResponse> {
         if (mentorId == 0) {
-            return Resource.Error("No mentorId found")
+            return Resource.Error(RepositoryConstants.ERROR_NO_MENTOR_ID)
         }
 
         return try {
@@ -351,18 +351,18 @@ class MentorRepositoryImpl @Inject constructor(
                         }
                     }
                     Resource.Success(bulkResponse)
-                } ?: Resource.Error("Response body is null")
+                } ?: Resource.Error(RepositoryConstants.ERROR_NULL_RESPONSE_BODY)
             } else {
-                Resource.Error("API call failed: ${response.errorBody()?.string()}")
+                Resource.Error("${RepositoryConstants.ERROR_API_CALL_FAILED}${response.errorBody()?.string()}")
             }
         } catch (e: Exception) {
-            Resource.Error("Exception occurred: ${e.message}")
+            Resource.Error("${RepositoryConstants.ERROR_EXCEPTION_OCCURRED}${e.message}")
         }
     }
 
     override suspend fun postPendingRecompensas(zoneId:Int, mentorId: Int): Resource<BulkRecompensasResponse> {
         if (mentorId == 0) {
-            return Resource.Error("No mentorId found")
+            return Resource.Error(RepositoryConstants.ERROR_NO_MENTOR_ID)
         }
 
         return try {
@@ -471,12 +471,12 @@ class MentorRepositoryImpl @Inject constructor(
                         }
                     }
                     Resource.Success(bulkResponse)
-                } ?: Resource.Error("Response body is null")
+                } ?: Resource.Error(RepositoryConstants.ERROR_NULL_RESPONSE_BODY)
             } else {
-                Resource.Error("API call failed: ${response.errorBody()?.string()}")
+                Resource.Error("${RepositoryConstants.ERROR_API_CALL_FAILED}${response.errorBody()?.string()}")
             }
         } catch (e: Exception) {
-            Resource.Error("Exception occurred: ${e.message}")
+            Resource.Error("${RepositoryConstants.ERROR_EXCEPTION_OCCURRED}${e.message}")
         }
     }
 }
