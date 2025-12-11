@@ -2,19 +2,21 @@ package edu.ucne.tasktally.data.repositories
 
 import edu.ucne.tasktally.data.local.DAOs.ZonaDao
 import edu.ucne.tasktally.data.local.DAOs.mentor.MentorDao
+import edu.ucne.tasktally.data.local.entidades.mentor.RecompensaMentorEntity
+import edu.ucne.tasktally.data.local.entidades.mentor.TareaMentorEntity
+import edu.ucne.tasktally.data.mappers.toDomain
+import edu.ucne.tasktally.data.mappers.toEntity
 import edu.ucne.tasktally.data.mappers.toRecompensaMentorDomain
 import edu.ucne.tasktally.data.mappers.toRecompensaMentorEntity
 import edu.ucne.tasktally.data.mappers.toTareaMentorDomain
 import edu.ucne.tasktally.data.mappers.toTareaMentorEntity
-import edu.ucne.tasktally.data.mappers.toDomain
-import edu.ucne.tasktally.data.mappers.toEntity
 import edu.ucne.tasktally.data.mappers.toZonaDomain
-import edu.ucne.tasktally.data.remote.DTOs.mentor.tareas.BulkTareasRequest
-import edu.ucne.tasktally.data.remote.DTOs.mentor.tareas.BulkTareasResponse
-import edu.ucne.tasktally.data.remote.DTOs.mentor.tareas.TareaOperationDto
 import edu.ucne.tasktally.data.remote.DTOs.mentor.recompensa.BulkRecompensasRequest
 import edu.ucne.tasktally.data.remote.DTOs.mentor.recompensa.BulkRecompensasResponse
 import edu.ucne.tasktally.data.remote.DTOs.mentor.recompensa.RecompensaOperationDto
+import edu.ucne.tasktally.data.remote.DTOs.mentor.tareas.BulkTareasRequest
+import edu.ucne.tasktally.data.remote.DTOs.mentor.tareas.BulkTareasResponse
+import edu.ucne.tasktally.data.remote.DTOs.mentor.tareas.TareaOperationDto
 import edu.ucne.tasktally.data.remote.DTOs.mentor.zone.UpdateZoneCodeResponse
 import edu.ucne.tasktally.data.remote.DTOs.mentor.zone.UpdateZoneRequest
 import edu.ucne.tasktally.data.remote.DTOs.mentor.zone.UpdateZoneResponse
@@ -148,7 +150,11 @@ class MentorRepositoryImpl @Inject constructor(
                     Resource.Success(it)
                 } ?: Resource.Error(RepositoryConstants.ERROR_NULL_RESPONSE_BODY)
             } else {
-                Resource.Error("${RepositoryConstants.ERROR_UPDATE_ZONE_CODE}${response.errorBody()?.string()}")
+                Resource.Error(
+                    "${RepositoryConstants.ERROR_UPDATE_ZONE_CODE}${
+                        response.errorBody()?.string()
+                    }"
+                )
             }
         } catch (e: Exception) {
             Resource.Error("${RepositoryConstants.ERROR_EXCEPTION_OCCURRED}${e.message}")
@@ -168,7 +174,11 @@ class MentorRepositoryImpl @Inject constructor(
                     Resource.Success(it)
                 } ?: Resource.Error(RepositoryConstants.ERROR_NULL_RESPONSE_BODY)
             } else {
-                Resource.Error("${RepositoryConstants.ERROR_UPDATE_ZONE_NAME}${response.errorBody()?.string()}")
+                Resource.Error(
+                    "${RepositoryConstants.ERROR_UPDATE_ZONE_NAME}${
+                        response.errorBody()?.string()
+                    }"
+                )
             }
         } catch (e: Exception) {
             Resource.Error("${RepositoryConstants.ERROR_EXCEPTION_OCCURRED}${e.message}")
@@ -189,38 +199,38 @@ class MentorRepositoryImpl @Inject constructor(
 
                 response.body()?.let { mentorData ->
                     mentorData.tareas.forEach { tareaDto ->
-                            val tarea = TareaMentor(
-                                tareaId = UUID.randomUUID().toString(),
-                                remoteId = tareaDto.tareasGroupId ?: 0,
+                        val tarea = TareaMentor(
+                            tareaId = UUID.randomUUID().toString(),
+                            remoteId = tareaDto.tareasGroupId ?: 0,
 
-                                titulo = tareaDto.titulo ?: "",
-                                descripcion = tareaDto.descripcion ?: "",
-                                puntos = tareaDto.puntos ?: 0,
-                                dias = tareaDto.dias ?: "",
-                                repetir = tareaDto.repetir ?: 0,
-                                nombreImgVector = tareaDto.nombreImgVector ?: "",
+                            titulo = tareaDto.titulo ?: "",
+                            descripcion = tareaDto.descripcion ?: "",
+                            puntos = tareaDto.puntos ?: 0,
+                            dias = tareaDto.dias ?: "",
+                            repetir = tareaDto.repetir ?: 0,
+                            nombreImgVector = tareaDto.nombreImgVector ?: "",
 
-                                isPendingCreate = false,
-                                isPendingUpdate = false,
-                                isPendingDelete = false
-                            )
-                            mentorDao.upsertTarea(tarea.toTareaMentorEntity())
+                            isPendingCreate = false,
+                            isPendingUpdate = false,
+                            isPendingDelete = false
+                        )
+                        mentorDao.upsertTarea(tarea.toTareaMentorEntity())
                     }
                     mentorData.recompensas.forEach { recompensaDto ->
-                            val recompensa = RecompensaMentor(
-                                recompensaId = UUID.randomUUID().toString(),
-                                remoteId = recompensaDto.recompensaId ?: 0,
+                        val recompensa = RecompensaMentor(
+                            recompensaId = UUID.randomUUID().toString(),
+                            remoteId = recompensaDto.recompensaId ?: 0,
 
-                                titulo = recompensaDto.titulo ?: "",
-                                descripcion = recompensaDto.descripcion ?: "",
-                                precio = recompensaDto.precio ?: 0,
-                                isDisponible = recompensaDto.isDisponible ?: true,
-                                nombreImgVector = recompensaDto.nombreImgVector ?: "",
+                            titulo = recompensaDto.titulo ?: "",
+                            descripcion = recompensaDto.descripcion ?: "",
+                            precio = recompensaDto.precio ?: 0,
+                            isDisponible = recompensaDto.isDisponible ?: true,
+                            nombreImgVector = recompensaDto.nombreImgVector ?: "",
 
-                                isPendingCreate = false,
-                                isPendingUpdate = false,
-                                isPendingDelete = false
-                            )
+                            isPendingCreate = false,
+                            isPendingUpdate = false,
+                            isPendingDelete = false
+                        )
                         mentorDao.upsertRecompensa(recompensa.toRecompensaMentorEntity())
                     }
                     Resource.Success(Unit)
@@ -237,66 +247,16 @@ class MentorRepositoryImpl @Inject constructor(
         }
     }
 
-    override suspend fun postPendingTareas(zoneId:Int,mentorId: Int): Resource<BulkTareasResponse> {
-        if (mentorId == 0) {
+    override suspend fun postPendingTareas(
+        zoneId: Int,
+        mentorId: Int
+    ): Resource<BulkTareasResponse> {
+
+        if (mentorId == 0)
             return Resource.Error(RepositoryConstants.ERROR_NO_MENTOR_ID)
-        }
 
         return try {
-            val pendingCreateTareas = mentorDao.obtenerTareasPendientesDeCrear()
-            val pendingUpdateTareas = mentorDao.obtenerTareasPendientesDeActualizar()
-            val pendingDeleteTareas = mentorDao.obtenerTareasPendientesDeEliminar()
-
-            val allOperations = mutableListOf<TareaOperationDto>()
-
-            pendingCreateTareas.forEach { tarea ->
-                allOperations.add(
-                    TareaOperationDto(
-                        accion = "create",
-                        tareasGroupId = null,
-                        titulo = tarea.titulo,
-                        descripcion = tarea.descripcion,
-                        puntos = tarea.puntos,
-                        repetir = tarea.repetir,
-                        dias = tarea.dias,
-                        nombreImgVector = tarea.nombreImgVector,
-                    )
-                )
-            }
-
-            pendingUpdateTareas.forEach { tarea ->
-                tarea.remoteId?.let { groupId ->
-                    allOperations.add(
-                        TareaOperationDto(
-                            accion = "update",
-                            tareasGroupId = groupId,
-                            titulo = tarea.titulo,
-                            descripcion = tarea.descripcion,
-                            puntos = tarea.puntos,
-                            repetir = tarea.repetir,
-                            dias = tarea.dias,
-                            nombreImgVector = tarea.nombreImgVector
-                        )
-                    )
-                }
-            }
-
-            pendingDeleteTareas.forEach { tarea ->
-                tarea.remoteId?.let { groupId ->
-                    allOperations.add(
-                        TareaOperationDto(
-                            accion = "delete",
-                            tareasGroupId = groupId,
-                            titulo = null,
-                            descripcion = null,
-                            puntos = null,
-                            repetir = null,
-                            dias = null,
-                            nombreImgVector = null
-                        )
-                    )
-                }
-            }
+            val (pendingCreateTareas, pendingUpdateTareas, pendingDeleteTareas, allOperations) = createOperationList()
 
             if (allOperations.isEmpty()) {
                 return Resource.Success(BulkTareasResponse(0, 0, emptyList()))
@@ -307,176 +267,257 @@ class MentorRepositoryImpl @Inject constructor(
                 zoneId = zoneId,
                 tareas = allOperations
             )
-
             val response = api.bulkTareas(bulkRequest)
 
             if (response.isSuccessful) {
                 response.body()?.let { bulkResponse ->
-                    bulkResponse.results.forEach { result ->
-                        when (result.accion) {
-                            "create" -> {
-                                if (result.success && result.tareasGroupId != null) {
-                                    val localTarea =
-                                        pendingCreateTareas.find { it.titulo == result.titulo }
-                                    localTarea?.let {
-                                        val updatedTarea = it.copy(
-                                            remoteId = result.tareasGroupId,
-                                            isPendingCreate = false
-                                        )
-                                        mentorDao.upsertTarea(updatedTarea)
-                                    }
-                                }
-                            }
-
-                            "update" -> {
-                                if (result.success && result.tareasGroupId != null) {
-                                    val localTarea =
-                                        pendingUpdateTareas.find { it.remoteId == result.tareasGroupId }
-                                    localTarea?.let {
-                                        val updatedTarea = it.copy(isPendingUpdate = false)
-                                        mentorDao.upsertTarea(updatedTarea)
-                                    }
-                                }
-                            }
-
-                            "delete" -> {
-                                if (result.success && result.tareasGroupId != null) {
-                                    val localTarea =
-                                        pendingDeleteTareas.find { it.remoteId == result.tareasGroupId }
-                                    localTarea?.let {
-                                        mentorDao.eliminarTarea(it)
-                                    }
-                                }
-                            }
-                        }
-                    }
+                    handleBulkResponse(
+                        bulkResponse,
+                        pendingCreateTareas,
+                        pendingUpdateTareas,
+                        pendingDeleteTareas
+                    )
                     Resource.Success(bulkResponse)
                 } ?: Resource.Error(RepositoryConstants.ERROR_NULL_RESPONSE_BODY)
             } else {
-                Resource.Error("${RepositoryConstants.ERROR_API_CALL_FAILED}${response.errorBody()?.string()}")
+                Resource.Error(
+                    "${RepositoryConstants.ERROR_API_CALL_FAILED} ${response.errorBody()?.string()}"
+                )
             }
         } catch (e: Exception) {
-            Resource.Error("${RepositoryConstants.ERROR_EXCEPTION_OCCURRED}${e.message}")
+            Resource.Error("${RepositoryConstants.ERROR_EXCEPTION_OCCURRED} ${e.message}")
         }
     }
 
-    override suspend fun postPendingRecompensas(zoneId:Int, mentorId: Int): Resource<BulkRecompensasResponse> {
-        if (mentorId == 0) {
-            return Resource.Error(RepositoryConstants.ERROR_NO_MENTOR_ID)
+    private data class TareaOperationData(
+        val pendingCreateTareas: List<TareaMentorEntity>,
+        val pendingUpdateTareas: List<TareaMentorEntity>,
+        val pendingDeleteTareas: List<TareaMentorEntity>,
+        val allOperations: List<TareaOperationDto>
+    )
+
+    private suspend fun createOperationList(): TareaOperationData {
+        val pendingCreateTareas = mentorDao.obtenerTareasPendientesDeCrear()
+        val pendingUpdateTareas = mentorDao.obtenerTareasPendientesDeActualizar()
+        val pendingDeleteTareas = mentorDao.obtenerTareasPendientesDeEliminar()
+
+        val allOperations = mutableListOf<TareaOperationDto>()
+
+        pendingCreateTareas.forEach { tarea ->
+            allOperations.add(createOperationDto("create", tarea))
         }
 
+        pendingUpdateTareas.forEach { tarea ->
+            tarea.remoteId?.let {
+                allOperations.add(createOperationDto("update", tarea))
+            }
+        }
+
+        pendingDeleteTareas.forEach { tarea ->
+            tarea.remoteId?.let {
+                allOperations.add(createOperationDto("delete", tarea, true))
+            }
+        }
+
+        return TareaOperationData(
+            pendingCreateTareas,
+            pendingUpdateTareas,
+            pendingDeleteTareas,
+            allOperations
+        )
+    }
+
+    private fun createOperationDto(
+        accion: String,
+        tarea: TareaMentorEntity,
+        isDelete: Boolean = false
+    ): TareaOperationDto {
+        return TareaOperationDto(
+            accion = accion,
+            tareasGroupId = if (isDelete || accion == "update") tarea.remoteId else null,
+            titulo = if (!isDelete) tarea.titulo else null,
+            descripcion = if (!isDelete) tarea.descripcion else null,
+            puntos = if (!isDelete) tarea.puntos else null,
+            repetir = if (!isDelete) tarea.repetir else null,
+            dias = if (!isDelete) tarea.dias else null,
+            nombreImgVector = if (!isDelete) tarea.nombreImgVector else null
+        )
+    }
+
+    private suspend fun handleBulkResponse(
+        bulkResponse: BulkTareasResponse,
+        pendingCreateTareas: List<TareaMentorEntity>,
+        pendingUpdateTareas: List<TareaMentorEntity>,
+        pendingDeleteTareas: List<TareaMentorEntity>
+    ) {
+        bulkResponse.results.forEach { result ->
+            if (result.success && result.tareasGroupId != null) {
+                when (result.accion) {
+                    "create" -> {
+                        val localTarea = pendingCreateTareas.find { it.titulo == result.titulo }
+                        localTarea?.let {
+                            mentorDao.upsertTarea(
+                                it.copy(
+                                    remoteId = result.tareasGroupId,
+                                    isPendingCreate = false
+                                )
+                            )
+                        }
+                    }
+
+                    "update" -> {
+                        val localTarea =
+                            pendingUpdateTareas.find { it.remoteId == result.tareasGroupId }
+                        localTarea?.let {
+                            mentorDao.upsertTarea(it.copy(isPendingUpdate = false))
+                        }
+                    }
+
+                    "delete" -> {
+                        val localTarea =
+                            pendingDeleteTareas.find { it.remoteId == result.tareasGroupId }
+                        localTarea?.let {
+                            mentorDao.eliminarTarea(it)
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    override suspend fun postPendingRecompensas(
+        zoneId: Int,
+        mentorId: Int
+    ): Resource<BulkRecompensasResponse> {
+        if (mentorId == 0)
+            return Resource.Error(RepositoryConstants.ERROR_NO_MENTOR_ID)
+
         return try {
-            val pendingCreateRecompensas = mentorDao.obtenerRecompensasPendientesDeCrear()
-            val pendingUpdateRecompensas = mentorDao.obtenerRecompensasPendientesDeActualizar()
-            val pendingDeleteRecompensas = mentorDao.obtenerRecompensasPendientesDeEliminar()
+            val (pendingCreate, pendingUpdate, pendingDelete, allOperations) = createRecompensaOperationList()
 
-            val allOperations = mutableListOf<RecompensaOperationDto>()
-
-            pendingCreateRecompensas.forEach { recompensa ->
-                allOperations.add(
-                    RecompensaOperationDto(
-                        accion = "create",
-                        recompensaId = null,
-                        titulo = recompensa.titulo,
-                        descripcion = recompensa.descripcion,
-                        precio = recompensa.precio,
-                        isDisponible = recompensa.isDisponible,
-                        nombreImgVector = recompensa.nombreImgVector
-                    )
-                )
-            }
-
-            pendingUpdateRecompensas.forEach { recompensa ->
-                recompensa.remoteId?.let { remoteId ->
-                    allOperations.add(
-                        RecompensaOperationDto(
-                            accion = "update",
-                            recompensaId = remoteId,
-                            titulo = recompensa.titulo,
-                            descripcion = recompensa.descripcion,
-                            precio = recompensa.precio,
-                            isDisponible = recompensa.isDisponible,
-                            nombreImgVector = recompensa.nombreImgVector
-                        )
-                    )
-                }
-            }
-
-            pendingDeleteRecompensas.forEach { recompensa ->
-                recompensa.remoteId?.let { remoteId ->
-                    allOperations.add(
-                        RecompensaOperationDto(
-                            accion = "delete",
-                            recompensaId = remoteId,
-                            titulo = null,
-                            descripcion = null,
-                            precio = null,
-                            isDisponible = null,
-                            nombreImgVector = null
-                        )
-                    )
-                }
-            }
-
-            if (allOperations.isEmpty()) {
+            if (allOperations.isEmpty())
                 return Resource.Success(BulkRecompensasResponse(0, 0, emptyList()))
-            }
 
             val bulkRequest = BulkRecompensasRequest(
                 mentorId = mentorId,
                 zoneId = zoneId,
                 recompensas = allOperations
             )
-
             val response = api.bulkRecompensas(bulkRequest)
 
             if (response.isSuccessful) {
                 response.body()?.let { bulkResponse ->
-                    bulkResponse.results.forEach { result ->
-                        when (result.accion) {
-                            "create" -> {
-                                if (result.success && result.recompensaId != null) {
-                                    val localRecompensa =
-                                        pendingCreateRecompensas.find { it.titulo == result.titulo }
-                                    localRecompensa?.let {
-                                        val updatedRecompensa = it.copy(
-                                            remoteId = result.recompensaId,
-                                            isPendingCreate = false
-                                        )
-                                        mentorDao.upsertRecompensa(updatedRecompensa)
-                                    }
-                                }
-                            }
-
-                            "update" -> {
-                                if (result.success && result.recompensaId != null) {
-                                    val localRecompensa =
-                                        pendingUpdateRecompensas.find { it.remoteId == result.recompensaId }
-                                    localRecompensa?.let {
-                                        val updatedRecompensa = it.copy(isPendingUpdate = false)
-                                        mentorDao.upsertRecompensa(updatedRecompensa)
-                                    }
-                                }
-                            }
-
-                            "delete" -> {
-                                if (result.success && result.recompensaId != null) {
-                                    val localRecompensa =
-                                        pendingDeleteRecompensas.find { it.remoteId == result.recompensaId }
-                                    localRecompensa?.let {
-                                        mentorDao.eliminarRecompensaMentor(it)
-                                    }
-                                }
-                            }
-                        }
-                    }
+                    handleBulkRecompensaResponse(
+                        bulkResponse,
+                        pendingCreate,
+                        pendingUpdate,
+                        pendingDelete
+                    )
                     Resource.Success(bulkResponse)
                 } ?: Resource.Error(RepositoryConstants.ERROR_NULL_RESPONSE_BODY)
             } else {
-                Resource.Error("${RepositoryConstants.ERROR_API_CALL_FAILED}${response.errorBody()?.string()}")
+                Resource.Error(
+                    "${RepositoryConstants.ERROR_API_CALL_FAILED}${response.errorBody()?.string()}"
+                )
             }
         } catch (e: Exception) {
             Resource.Error("${RepositoryConstants.ERROR_EXCEPTION_OCCURRED}${e.message}")
+        }
+    }
+
+    private data class RecompensaOperationData(
+        val pendingCreateRecompensas: List<RecompensaMentorEntity>,
+        val pendingUpdateRecompensas: List<RecompensaMentorEntity>,
+        val pendingDeleteRecompensas: List<RecompensaMentorEntity>,
+        val allOperations: List<RecompensaOperationDto>
+    )
+
+    private suspend fun createRecompensaOperationList(): RecompensaOperationData {
+        val pendingCreateRecompensas = mentorDao.obtenerRecompensasPendientesDeCrear()
+        val pendingUpdateRecompensas = mentorDao.obtenerRecompensasPendientesDeActualizar()
+        val pendingDeleteRecompensas = mentorDao.obtenerRecompensasPendientesDeEliminar()
+
+        val allOperations = mutableListOf<RecompensaOperationDto>()
+
+        pendingCreateRecompensas.forEach { recompensa ->
+            allOperations.add(createRecompensaOperationDto("create", recompensa))
+        }
+
+        pendingUpdateRecompensas.forEach { recompensa ->
+            recompensa.remoteId?.let {
+                allOperations.add(createRecompensaOperationDto("update", recompensa))
+            }
+        }
+
+        pendingDeleteRecompensas.forEach { recompensa ->
+            recompensa.remoteId?.let {
+                allOperations.add(createRecompensaOperationDto("delete", recompensa, true))
+            }
+        }
+
+        return RecompensaOperationData(
+            pendingCreateRecompensas,
+            pendingUpdateRecompensas,
+            pendingDeleteRecompensas,
+            allOperations
+        )
+    }
+
+    private fun createRecompensaOperationDto(
+        accion: String,
+        recompensa: RecompensaMentorEntity,
+        isDelete: Boolean = false
+    ): RecompensaOperationDto {
+        return RecompensaOperationDto(
+            accion = accion,
+            recompensaId = if (isDelete || accion == "update") recompensa.remoteId else null,
+            titulo = if (!isDelete) recompensa.titulo else null,
+            descripcion = if (!isDelete) recompensa.descripcion else null,
+            precio = if (!isDelete) recompensa.precio else null,
+            isDisponible = if (!isDelete) recompensa.isDisponible else null,
+            nombreImgVector = if (!isDelete) recompensa.nombreImgVector else null
+        )
+    }
+
+    private suspend fun handleBulkRecompensaResponse(
+        bulkResponse: BulkRecompensasResponse,
+        pendingCreateRecompensas: List<RecompensaMentorEntity>,
+        pendingUpdateRecompensas: List<RecompensaMentorEntity>,
+        pendingDeleteRecompensas: List<RecompensaMentorEntity>
+    ) {
+        bulkResponse.results.forEach { result ->
+            if (result.success && result.recompensaId != null) {
+                when (result.accion) {
+                    "create" -> {
+                        val localRecompensa =
+                            pendingCreateRecompensas.find { it.titulo == result.titulo }
+                        localRecompensa?.let {
+                            mentorDao.upsertRecompensa(
+                                it.copy(
+                                    remoteId = result.recompensaId,
+                                    isPendingCreate = false
+                                )
+                            )
+                        }
+                    }
+
+                    "update" -> {
+                        val localRecompensa =
+                            pendingUpdateRecompensas.find { it.remoteId == result.recompensaId }
+                        localRecompensa?.let {
+                            mentorDao.upsertRecompensa(it.copy(isPendingUpdate = false))
+                        }
+                    }
+
+                    "delete" -> {
+                        val localRecompensa =
+                            pendingDeleteRecompensas.find { it.remoteId == result.recompensaId }
+                        localRecompensa?.let {
+                            mentorDao.eliminarRecompensaMentor(it)
+                        }
+                    }
+                }
+            }
         }
     }
 }
