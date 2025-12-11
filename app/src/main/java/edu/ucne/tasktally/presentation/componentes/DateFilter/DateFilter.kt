@@ -3,7 +3,6 @@ package edu.ucne.tasktally.presentation.componentes.DateFilter
 import androidx.compose.animation.core.Spring
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.spring
-import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.interaction.collectIsPressedAsState
@@ -13,8 +12,6 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.KeyboardArrowLeft
 import androidx.compose.material.icons.automirrored.filled.KeyboardArrowRight
-import androidx.compose.material.icons.filled.KeyboardArrowLeft
-import androidx.compose.material.icons.filled.KeyboardArrowRight
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -60,7 +57,6 @@ fun DateFilter(
         label = "nextScale"
     )
 
-    val dateFormatter = DateTimeFormatter.ofPattern("EEEE d 'de' MMMM")
     val dayFormatter = DateTimeFormatter.ofPattern("d")
     val monthFormatter = DateTimeFormatter.ofPattern("MMM")
     val weekdayFormatter = DateTimeFormatter.ofPattern("EEEE")
