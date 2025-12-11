@@ -3,6 +3,7 @@ package edu.ucne.tasktally.data.remote.interceptors
 import edu.ucne.tasktally.data.local.preferences.AuthPreferencesManager
 import edu.ucne.tasktally.data.remote.AuthApi
 import edu.ucne.tasktally.data.remote.DTOs.auth.RefreshTokenRequest
+import edu.ucne.tasktally.data.remote.DTOs.auth.RefreshTokenResponse
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.runBlocking
 import okhttp3.Authenticator
@@ -19,42 +20,44 @@ class TokenAuthenticator @Inject constructor(
 ) : Authenticator {
 
     override fun authenticate(route: Route?, response: Response): Request? {
-        if (response.code == 401) {
-            return runBlocking {
-                try {
-                    val refreshToken = authPreferencesManager.refreshToken.first()
-                    if (refreshToken.isNullOrEmpty()) {
-                        authPreferencesManager.clearAuthData()
-                        return@runBlocking null
-                    }
+        if (response.code != 401) return null
 
-                    val refreshResponse = authApi.refreshToken(RefreshTokenRequest(refreshToken))
-                    if (refreshResponse.isSuccessful && refreshResponse.body() != null) {
-                        val refreshData = refreshResponse.body()!!
-                        if (refreshData.success && refreshData.token != null) {
-                            authPreferencesManager.updateTokens(
-                                accessToken = refreshData.token,
-                                refreshToken = refreshData.refreshToken ?: refreshToken,
-                                expiresAt = refreshData.expiresAt
-                            )
-
-                            response.request.newBuilder()
-                                .header("Authorization", "Bearer ${refreshData.token}")
-                                .build()
-                        } else {
-                            authPreferencesManager.clearAuthData()
-                            null
-                        }
-                    } else {
-                        authPreferencesManager.clearAuthData()
-                        null
-                    }
-                } catch (e: Exception) {
+        return runBlocking {
+            try {
+                val newAccessToken = getNewAccessToken() ?: run {
                     authPreferencesManager.clearAuthData()
-                    null
+                    return@runBlocking null
                 }
+
+                response.request.newBuilder()
+                    .header("Authorization", "Bearer $newAccessToken")
+                    .build()
+
+            } catch (e: Exception) {
+                authPreferencesManager.clearAuthData()
+                return@runBlocking null
             }
         }
-        return null
+    }
+
+    private suspend fun getNewAccessToken(): String? {
+        val refreshToken = authPreferencesManager.refreshToken.first()
+        if (refreshToken.isNullOrEmpty()) return null
+
+        val refreshResponse = authApi.refreshToken(RefreshTokenRequest(refreshToken))
+
+        if (!refreshResponse.isSuccessful || refreshResponse.body() == null) return null
+
+        val refreshData: RefreshTokenResponse = refreshResponse.body()!!
+
+        if (!refreshData.success || refreshData.token == null) return null
+
+        authPreferencesManager.updateTokens(
+            accessToken = refreshData.token,
+            refreshToken = refreshData.refreshToken ?: refreshToken,
+            expiresAt = refreshData.expiresAt
+        )
+
+        return refreshData.token
     }
 }
