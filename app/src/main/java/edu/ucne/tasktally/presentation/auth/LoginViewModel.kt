@@ -120,7 +120,9 @@ class LoginViewModel @Inject constructor(
                     error = result.message
                 )
             }
-            is Resource.Loading -> {}
+            is Resource.Loading -> {
+                _uiState.value = _uiState.value.copy(isLoading = true)
+            }
         }
     }
 
