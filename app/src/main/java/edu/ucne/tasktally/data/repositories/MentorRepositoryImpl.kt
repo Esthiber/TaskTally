@@ -23,19 +23,24 @@ import edu.ucne.tasktally.data.remote.DTOs.mentor.zone.UpdateZoneResponse
 import edu.ucne.tasktally.data.remote.Resource
 import edu.ucne.tasktally.data.remote.TaskTallyApi
 import edu.ucne.tasktally.data.util.RepositoryConstants
+import edu.ucne.tasktally.di.IoDispatcher
 import edu.ucne.tasktally.domain.models.RecompensaMentor
 import edu.ucne.tasktally.domain.models.TareaMentor
 import edu.ucne.tasktally.domain.models.Zona
 import edu.ucne.tasktally.domain.repository.MentorRepository
+import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.withContext
 import java.util.UUID
 import javax.inject.Inject
 
 class MentorRepositoryImpl @Inject constructor(
     private val mentorDao: MentorDao,
     private val zonaDao: ZonaDao,
-    private val api: TaskTallyApi
+    private val api: TaskTallyApi,
+    @IoDispatcher private val ioDispatcher: CoroutineDispatcher
 ) : MentorRepository {
 
     //region Tareas
@@ -44,10 +49,11 @@ class MentorRepositoryImpl @Inject constructor(
             list.map { it.toTareaMentorDomain() }
         }
 
-    override suspend fun getTareaById(id: String): TareaMentor? =
+    override suspend fun getTareaById(id: String): TareaMentor? = withContext(ioDispatcher) {
         mentorDao.obtenerTareaMentorPorId(id)?.toTareaMentorDomain()
+    }
 
-    override suspend fun createTareaLocal(tarea: TareaMentor) {
+    override suspend fun createTareaLocal(tarea: TareaMentor) = withContext(ioDispatcher) {
         val tareaToSave = if (tarea.remoteId != null) {
             tarea.copy(isPendingCreate = false, isPendingUpdate = true)
         } else {
@@ -56,15 +62,15 @@ class MentorRepositoryImpl @Inject constructor(
         mentorDao.upsertTarea(tareaToSave.toTareaMentorEntity())
     }
 
-    override suspend fun updateTareaLocal(tarea: TareaMentor) {
+    override suspend fun updateTareaLocal(tarea: TareaMentor) = withContext(ioDispatcher) {
         mentorDao.upsertTarea(tarea.copy(isPendingUpdate = true).toTareaMentorEntity())
     }
 
-    override suspend fun deleteTareaLocal(tarea: TareaMentor) {
+    override suspend fun deleteTareaLocal(tarea: TareaMentor) = withContext(ioDispatcher) {
         mentorDao.upsertTarea(tarea.copy(isPendingDelete = true).toTareaMentorEntity())
     }
 
-    override suspend fun deleteAllTareasLocal(mentorId: Int) {
+    override suspend fun deleteAllTareasLocal(mentorId: Int) = withContext(ioDispatcher) {
         mentorDao.eliminarTodasLasTareas()
     }
     //endregion
@@ -76,9 +82,12 @@ class MentorRepositoryImpl @Inject constructor(
         }
 
     override suspend fun getRecompensaById(id: String): RecompensaMentor? =
+        withContext(ioDispatcher) {
         mentorDao.obtenerRecompensaMentorPorId(id)?.toRecompensaMentorDomain()
+        }
 
-    override suspend fun createRecompensaLocal(recompensa: RecompensaMentor) {
+    override suspend fun createRecompensaLocal(recompensa: RecompensaMentor) =
+        withContext(ioDispatcher) {
         val recompensaToSave = if (recompensa.remoteId != null) {
             recompensa.copy(isPendingCreate = false, isPendingUpdate = true)
         } else {
@@ -87,53 +96,55 @@ class MentorRepositoryImpl @Inject constructor(
         mentorDao.upsertRecompensa(recompensaToSave.toRecompensaMentorEntity())
     }
 
-    override suspend fun updateRecompensaLocal(recompensa: RecompensaMentor) {
+    override suspend fun updateRecompensaLocal(recompensa: RecompensaMentor) =
+        withContext(ioDispatcher) {
         mentorDao.upsertRecompensa(
             recompensa.copy(isPendingUpdate = true).toRecompensaMentorEntity()
         )
     }
 
-    override suspend fun deleteRecompensaLocal(recompensa: RecompensaMentor) {
+    override suspend fun deleteRecompensaLocal(recompensa: RecompensaMentor) =
+        withContext(ioDispatcher) {
         mentorDao.upsertRecompensa(
             recompensa.copy(isPendingDelete = true).toRecompensaMentorEntity()
         )
     }
 
-    override suspend fun deleteAllRecompensasLocal() {
-        mentorDao.observeTodasLasRecompensasMentor().collect { list ->
-            list.forEach {
-                mentorDao.upsertRecompensa(
-                    it.copy(isPendingDelete = true)
-                )
-            }
+    override suspend fun deleteAllRecompensasLocal() = withContext(ioDispatcher) {
+        val list = mentorDao.observeTodasLasRecompensasMentor().first()
+        list.forEach {
+            mentorDao.upsertRecompensa(
+                it.copy(isPendingDelete = true)
+            )
         }
     }
     //endregion
 
     //region zona
     override suspend fun getZoneInfo(mentorId: Int, zoneId: Int): Zona {
-        return try {
-            val response = api.obtenerMentorInfoZona(mentorId, zoneId)
-            if (response.isSuccessful) {
-                response.body()?.let { zoneInfo ->
-                    val zona = zoneInfo.toZonaDomain().copy(zonaId = zoneId)
+        return withContext(ioDispatcher) {
+            try {
+                val response = api.obtenerMentorInfoZona(mentorId, zoneId)
+                if (response.isSuccessful) {
+                    response.body()?.let { zoneInfo ->
+                        val zona = zoneInfo.toZonaDomain().copy(zonaId = zoneId)
 
-                    zonaDao.upsert(zona.toEntity())
-
-                    zona
-                } ?: run {
+                        zonaDao.upsert(zona.toEntity())
+                        zona
+                    } ?: run {
+                        getLocalZoneInfo(zoneId)
+                    }
+                } else {
                     getLocalZoneInfo(zoneId)
                 }
-            } else {
+            } catch (e: Exception) {
                 getLocalZoneInfo(zoneId)
             }
-        } catch (e: Exception) {
-            getLocalZoneInfo(zoneId)
         }
     }
 
-    private suspend fun getLocalZoneInfo(zoneId: Int): Zona {
-        return zonaDao.getById(zoneId)?.toDomain() ?: Zona(
+    private suspend fun getLocalZoneInfo(zoneId: Int): Zona = withContext(ioDispatcher) {
+        zonaDao.getById(zoneId)?.toDomain() ?: Zona(
             zonaId = zoneId,
             nombre = "",
             joinCode = "",
@@ -142,8 +153,9 @@ class MentorRepositoryImpl @Inject constructor(
         )
     }
 
-    override suspend fun updateZoneCode(mentorId: Int): Resource<UpdateZoneCodeResponse> {
-        return try {
+    override suspend fun updateZoneCode(mentorId: Int): Resource<UpdateZoneCodeResponse> =
+        withContext(ioDispatcher) {
+            return@withContext try {
             val response = api.updateZoneCode(mentorId)
             if (response.isSuccessful) {
                 response.body()?.let {
@@ -164,8 +176,8 @@ class MentorRepositoryImpl @Inject constructor(
     override suspend fun updateZoneName(
         mentorId: Int,
         zoneName: String
-    ): Resource<UpdateZoneResponse> {
-        return try {
+    ): Resource<UpdateZoneResponse> = withContext(ioDispatcher) {
+        return@withContext try {
             val request = UpdateZoneRequest(zoneName)
             val response = api.updateZoneName(mentorId, request)
 
@@ -186,11 +198,12 @@ class MentorRepositoryImpl @Inject constructor(
     }
     //endregion
 
-    override suspend fun getTareasRecompensasMentor(mentorId: Int): Resource<Unit> {
+    override suspend fun getTareasRecompensasMentor(mentorId: Int): Resource<Unit> =
+        withContext(ioDispatcher) {
         if (mentorId == 0) {
-            return Resource.Error(RepositoryConstants.ERROR_NO_MENTOR_ID)
+            return@withContext Resource.Error(RepositoryConstants.ERROR_NO_MENTOR_ID)
         }
-        return try {
+            return@withContext try {
             val response = api.getTareasRecompensasMentor(mentorId)
             if (response.isSuccessful) {
 
@@ -250,16 +263,15 @@ class MentorRepositoryImpl @Inject constructor(
     override suspend fun postPendingTareas(
         zoneId: Int,
         mentorId: Int
-    ): Resource<BulkTareasResponse> {
-
+    ): Resource<BulkTareasResponse> = withContext(ioDispatcher) {
         if (mentorId == 0)
-            return Resource.Error(RepositoryConstants.ERROR_NO_MENTOR_ID)
+            return@withContext Resource.Error(RepositoryConstants.ERROR_NO_MENTOR_ID)
 
-        return try {
-            val (pendingCreateTareas, pendingUpdateTareas, pendingDeleteTareas, allOperations) = createOperationList()
+        return@withContext try {
+            val (pendingCreateTareas, pendingUpdateTareas, pendingDeleteTareas, allOperations) = createOperationList() // Contiene llamadas a DAO
 
             if (allOperations.isEmpty()) {
-                return Resource.Success(BulkTareasResponse(0, 0, emptyList()))
+                return@withContext Resource.Success(BulkTareasResponse(0, 0, emptyList()))
             }
 
             val bulkRequest = BulkTareasRequest(
@@ -296,12 +308,13 @@ class MentorRepositoryImpl @Inject constructor(
         val allOperations: List<TareaOperationDto>
     )
 
-    private suspend fun createOperationList(): TareaOperationData {
+    private suspend fun createOperationList(): TareaOperationData = withContext(ioDispatcher) {
         val pendingCreateTareas = mentorDao.obtenerTareasPendientesDeCrear()
         val pendingUpdateTareas = mentorDao.obtenerTareasPendientesDeActualizar()
         val pendingDeleteTareas = mentorDao.obtenerTareasPendientesDeEliminar()
 
         val allOperations = mutableListOf<TareaOperationDto>()
+
 
         pendingCreateTareas.forEach { tarea ->
             allOperations.add(createOperationDto("create", tarea))
@@ -319,7 +332,7 @@ class MentorRepositoryImpl @Inject constructor(
             }
         }
 
-        return TareaOperationData(
+        return@withContext TareaOperationData(
             pendingCreateTareas,
             pendingUpdateTareas,
             pendingDeleteTareas,
@@ -349,7 +362,7 @@ class MentorRepositoryImpl @Inject constructor(
         pendingCreateTareas: List<TareaMentorEntity>,
         pendingUpdateTareas: List<TareaMentorEntity>,
         pendingDeleteTareas: List<TareaMentorEntity>
-    ) {
+    ) = withContext(ioDispatcher) {
         bulkResponse.results.forEach { result ->
             if (result.success && result.tareasGroupId != null) {
                 when (result.accion) {
@@ -388,15 +401,15 @@ class MentorRepositoryImpl @Inject constructor(
     override suspend fun postPendingRecompensas(
         zoneId: Int,
         mentorId: Int
-    ): Resource<BulkRecompensasResponse> {
+    ): Resource<BulkRecompensasResponse> = withContext(ioDispatcher) {
         if (mentorId == 0)
-            return Resource.Error(RepositoryConstants.ERROR_NO_MENTOR_ID)
+            return@withContext Resource.Error(RepositoryConstants.ERROR_NO_MENTOR_ID)
 
-        return try {
+        return@withContext try {
             val (pendingCreate, pendingUpdate, pendingDelete, allOperations) = createRecompensaOperationList()
 
             if (allOperations.isEmpty())
-                return Resource.Success(BulkRecompensasResponse(0, 0, emptyList()))
+                return@withContext Resource.Success(BulkRecompensasResponse(0, 0, emptyList()))
 
             val bulkRequest = BulkRecompensasRequest(
                 mentorId = mentorId,
@@ -432,7 +445,8 @@ class MentorRepositoryImpl @Inject constructor(
         val allOperations: List<RecompensaOperationDto>
     )
 
-    private suspend fun createRecompensaOperationList(): RecompensaOperationData {
+    private suspend fun createRecompensaOperationList(): RecompensaOperationData =
+        withContext(ioDispatcher) {
         val pendingCreateRecompensas = mentorDao.obtenerRecompensasPendientesDeCrear()
         val pendingUpdateRecompensas = mentorDao.obtenerRecompensasPendientesDeActualizar()
         val pendingDeleteRecompensas = mentorDao.obtenerRecompensasPendientesDeEliminar()
@@ -455,7 +469,7 @@ class MentorRepositoryImpl @Inject constructor(
             }
         }
 
-        return RecompensaOperationData(
+            return@withContext RecompensaOperationData(
             pendingCreateRecompensas,
             pendingUpdateRecompensas,
             pendingDeleteRecompensas,
@@ -484,7 +498,7 @@ class MentorRepositoryImpl @Inject constructor(
         pendingCreateRecompensas: List<RecompensaMentorEntity>,
         pendingUpdateRecompensas: List<RecompensaMentorEntity>,
         pendingDeleteRecompensas: List<RecompensaMentorEntity>
-    ) {
+    ) = withContext(ioDispatcher) {
         bulkResponse.results.forEach { result ->
             if (result.success && result.recompensaId != null) {
                 when (result.accion) {
