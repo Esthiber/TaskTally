@@ -1,4 +1,4 @@
-package edu.ucne.tasktally.presentation.auth
+package edu.ucne.tasktally.presentation.auth.login
 
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
@@ -74,11 +74,39 @@ fun LoginScreen(
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
     val isLoggedIn by viewModel.isLoggedIn.collectAsStateWithLifecycle()
-    val primaryColor = MaterialTheme.colorScheme.primary
 
+    LaunchedEffect(isLoggedIn) {
+        if (isLoggedIn) {
+            onLoginSuccess()
+        }
+    }
+
+    LoginScreenBody(
+        uiState = uiState,
+        onEvent = viewModel::onEvent,
+        onNavigateToRegister = onNavigateToRegister
+    )
+}
+
+@Composable
+fun LoginScreenBody(
+    uiState: LoginUiState,
+    onEvent: (LoginUiEvent) -> Unit,
+    onNavigateToRegister: () -> Unit
+) {
     val snackbarHostState = remember { SnackbarHostState() }
 
-    HandleLoginEffects(isLoggedIn, uiState.error, onLoginSuccess, snackbarHostState)
+    LaunchedEffect(uiState.error) {
+        uiState.error?.let { errorMessage ->
+            snackbarHostState.showSnackbar(
+                message = errorMessage,
+                actionLabel = "Cerrar",
+                duration = SnackbarDuration.Short,
+                withDismissAction = true
+            )
+            onEvent(LoginUiEvent.ClearError)
+        }
+    }
 
     Scaffold(
         snackbarHost = { SnackbarHost(snackbarHostState) },
@@ -86,47 +114,19 @@ fun LoginScreen(
             Box(
                 modifier = Modifier
                     .fillMaxSize()
-                    .background(primaryColor)
+                    .background(MaterialTheme.colorScheme.primary)
                     .padding(paddingValues)
             ) {
                 LoginHeader()
 
                 LoginCard(
                     uiState = uiState,
-                    primaryColor = primaryColor,
-                    onUsernameChanged = viewModel::onUsernameChanged,
-                    onPasswordChanged = viewModel::onPasswordChanged,
-                    onLoginClick = viewModel::onLoginClick,
+                    onEvent = onEvent,
                     onNavigateToRegister = onNavigateToRegister
                 )
             }
         }
     )
-}
-
-@Composable
-private fun HandleLoginEffects(
-    isLoggedIn: Boolean,
-    error: String?,
-    onLoginSuccess: () -> Unit,
-    snackbarHostState: SnackbarHostState
-) {
-    LaunchedEffect(isLoggedIn) {
-        if (isLoggedIn) {
-            onLoginSuccess()
-        }
-    }
-
-    LaunchedEffect(error) {
-        error?.let { errorMessage ->
-            snackbarHostState.showSnackbar(
-                message = errorMessage,
-                actionLabel = "Cerrar",
-                duration = SnackbarDuration.Short,
-                withDismissAction = true
-            )
-        }
-    }
 }
 
 @Composable
@@ -164,10 +164,7 @@ private fun LoginHeader() {
 @Composable
 private fun BoxScope.LoginCard(
     uiState: LoginUiState,
-    primaryColor: Color,
-    onUsernameChanged: (String) -> Unit,
-    onPasswordChanged: (String) -> Unit,
-    onLoginClick: () -> Unit,
+    onEvent: (LoginUiEvent) -> Unit,
     onNavigateToRegister: () -> Unit
 ) {
     Card(
@@ -187,7 +184,7 @@ private fun BoxScope.LoginCard(
         ) {
             Text(
                 text = "Iniciar Sesión",
-                color = primaryColor,
+                color = MaterialTheme.colorScheme.primary,
                 fontSize = 28.sp,
                 fontWeight = FontWeight.Bold,
                 modifier = Modifier.align(Alignment.Start)
@@ -197,16 +194,12 @@ private fun BoxScope.LoginCard(
 
             LoginForm(
                 uiState = uiState,
-                primaryColor = primaryColor,
-                onUsernameChanged = onUsernameChanged,
-                onPasswordChanged = onPasswordChanged,
-                onLoginClick = onLoginClick
+                onEvent = onEvent
             )
 
             Spacer(modifier = Modifier.height(24.dp))
 
             RegisterPrompt(
-                primaryColor = primaryColor,
                 isLoading = uiState.isLoading,
                 onNavigateToRegister = onNavigateToRegister
             )
@@ -217,60 +210,15 @@ private fun BoxScope.LoginCard(
 @Composable
 private fun LoginForm(
     uiState: LoginUiState,
-    primaryColor: Color,
-    onUsernameChanged: (String) -> Unit,
-    onPasswordChanged: (String) -> Unit,
-    onLoginClick: () -> Unit
+    onEvent: (LoginUiEvent) -> Unit
 ) {
     val focusManager = LocalFocusManager.current
     var isPasswordVisible by remember { mutableStateOf(false) }
 
-    UsernameField(
-        value = uiState.username,
-        onValueChange = onUsernameChanged,
-        primaryColor = primaryColor,
-        isEnabled = !uiState.isLoading,
-        focusManager = focusManager
-    )
-
-    Spacer(modifier = Modifier.height(16.dp))
-
-    PasswordField(
-        value = uiState.password,
-        onValueChange = onPasswordChanged,
-        primaryColor = primaryColor,
-        isEnabled = !uiState.isLoading,
-        isPasswordVisible = isPasswordVisible,
-        onTogglePasswordVisibility = { isPasswordVisible = !isPasswordVisible },
-        onDone = {
-            focusManager.clearFocus()
-            onLoginClick()
-        }
-    )
-
-    ErrorMessage(error = uiState.error)
-
-    Spacer(modifier = Modifier.height(32.dp))
-
-    LoginButton(
-        isLoading = uiState.isLoading,
-        isEnabled = !uiState.isLoading && uiState.username.isNotBlank() && uiState.password.isNotBlank(),
-        primaryColor = primaryColor,
-        onClick = onLoginClick
-    )
-}
-
-@Composable
-private fun UsernameField(
-    value: String,
-    onValueChange: (String) -> Unit,
-    primaryColor: Color,
-    isEnabled: Boolean,
-    focusManager: androidx.compose.ui.focus.FocusManager
-) {
+    // Username Field
     OutlinedTextField(
-        value = value,
-        onValueChange = onValueChange,
+        value = uiState.username,
+        onValueChange = { onEvent(LoginUiEvent.UsernameChanged(it)) },
         label = { Text("Usuario") },
         leadingIcon = {
             Icon(
@@ -283,9 +231,9 @@ private fun UsernameField(
         singleLine = true,
         shape = RoundedCornerShape(12.dp),
         colors = OutlinedTextFieldDefaults.colors(
-            focusedBorderColor = primaryColor,
+            focusedBorderColor = MaterialTheme.colorScheme.primary,
             unfocusedBorderColor = Color.LightGray,
-            focusedLabelColor = primaryColor
+            focusedLabelColor = MaterialTheme.colorScheme.primary
         ),
         keyboardOptions = KeyboardOptions(
             keyboardType = KeyboardType.Text,
@@ -294,23 +242,15 @@ private fun UsernameField(
         keyboardActions = KeyboardActions(
             onNext = { focusManager.moveFocus(FocusDirection.Down) }
         ),
-        enabled = isEnabled
+        enabled = !uiState.isLoading
     )
-}
 
-@Composable
-private fun PasswordField(
-    value: String,
-    onValueChange: (String) -> Unit,
-    primaryColor: Color,
-    isEnabled: Boolean,
-    isPasswordVisible: Boolean,
-    onTogglePasswordVisibility: () -> Unit,
-    onDone: () -> Unit
-) {
+    Spacer(modifier = Modifier.height(16.dp))
+
+    // Password Field
     OutlinedTextField(
-        value = value,
-        onValueChange = onValueChange,
+        value = uiState.password,
+        onValueChange = { onEvent(LoginUiEvent.PasswordChanged(it)) },
         label = { Text("Contraseña") },
         leadingIcon = {
             Icon(
@@ -323,69 +263,45 @@ private fun PasswordField(
         singleLine = true,
         shape = RoundedCornerShape(12.dp),
         colors = OutlinedTextFieldDefaults.colors(
-            focusedBorderColor = primaryColor,
+            focusedBorderColor = MaterialTheme.colorScheme.primary,
             unfocusedBorderColor = Color.LightGray,
-            focusedLabelColor = primaryColor
+            focusedLabelColor = MaterialTheme.colorScheme.primary
         ),
         visualTransformation = if (isPasswordVisible) VisualTransformation.None else PasswordVisualTransformation(),
         keyboardOptions = KeyboardOptions(
             keyboardType = KeyboardType.Password,
             imeAction = ImeAction.Done
         ),
-        keyboardActions = KeyboardActions(onDone = { onDone() }),
+        keyboardActions = KeyboardActions(
+            onDone = {
+                focusManager.clearFocus()
+                onEvent(LoginUiEvent.LoginClick)
+            }
+        ),
         trailingIcon = {
-            PasswordVisibilityToggle(
-                isPasswordVisible = isPasswordVisible,
-                onToggle = onTogglePasswordVisibility
-            )
+            IconButton(onClick = { isPasswordVisible = !isPasswordVisible }) {
+                Icon(
+                    imageVector = if (isPasswordVisible) Icons.Default.VisibilityOff else Icons.Default.Visibility,
+                    contentDescription = if (isPasswordVisible) "Ocultar contraseña" else "Mostrar contraseña",
+                    tint = Color.Gray
+                )
+            }
         },
-        enabled = isEnabled
+        enabled = !uiState.isLoading
     )
-}
 
-@Composable
-private fun PasswordVisibilityToggle(
-    isPasswordVisible: Boolean,
-    onToggle: () -> Unit
-) {
-    IconButton(onClick = onToggle) {
-        Icon(
-            imageVector = if (isPasswordVisible) Icons.Default.VisibilityOff else Icons.Default.Visibility,
-            contentDescription = if (isPasswordVisible) "Ocultar contraseña" else "Mostrar contraseña",
-            tint = Color.Gray
-        )
-    }
-}
+    Spacer(modifier = Modifier.height(32.dp))
 
-@Composable
-private fun ErrorMessage(error: String?) {
-    error?.let {
-        Spacer(modifier = Modifier.height(8.dp))
-        Text(
-            text = it,
-            color = MaterialTheme.colorScheme.error,
-            style = MaterialTheme.typography.bodySmall
-        )
-    }
-}
-
-@Composable
-private fun LoginButton(
-    isLoading: Boolean,
-    isEnabled: Boolean,
-    primaryColor: Color,
-    onClick: () -> Unit
-) {
     Button(
-        onClick = onClick,
+        onClick = { onEvent(LoginUiEvent.LoginClick) },
         modifier = Modifier
             .fillMaxWidth()
             .height(50.dp),
         shape = RoundedCornerShape(12.dp),
-        colors = ButtonDefaults.buttonColors(containerColor = primaryColor),
-        enabled = isEnabled
+        colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.primary),
+        enabled = !uiState.isLoading && uiState.username.isNotBlank() && uiState.password.isNotBlank()
     ) {
-        if (isLoading) {
+        if (uiState.isLoading) {
             CircularProgressIndicator(
                 modifier = Modifier.size(20.dp),
                 color = Color.White
@@ -402,7 +318,6 @@ private fun LoginButton(
 
 @Composable
 private fun RegisterPrompt(
-    primaryColor: Color,
     isLoading: Boolean,
     onNavigateToRegister: () -> Unit
 ) {
@@ -423,7 +338,7 @@ private fun RegisterPrompt(
         ) {
             Text(
                 text = "Regístrate",
-                color = primaryColor,
+                color = MaterialTheme.colorScheme.primary,
                 fontSize = 14.sp,
                 fontWeight = FontWeight.SemiBold
             )
@@ -431,12 +346,46 @@ private fun RegisterPrompt(
     }
 }
 
-
-@Preview
+// Preview Composables
+@Preview(showBackground = true, showSystemUi = true)
 @Composable
-private fun LoginScreenPreview() {
-    LoginScreen(
-        onNavigateToRegister = {},
-        onLoginSuccess = {}
-    )
+private fun LoginScreenBodyPreview() {
+    MaterialTheme {
+        LoginScreenBody(
+            uiState = LoginUiState(),
+            onEvent = {},
+            onNavigateToRegister = {}
+        )
+    }
+}
+
+@Preview(showBackground = true, showSystemUi = true)
+@Composable
+private fun LoginScreenBodyWithDataPreview() {
+    MaterialTheme {
+        LoginScreenBody(
+            uiState = LoginUiState(
+                username = "testuser",
+                password = "password123"
+            ),
+            onEvent = {},
+            onNavigateToRegister = {}
+        )
+    }
+}
+
+@Preview(showBackground = true, showSystemUi = true)
+@Composable
+private fun LoginScreenBodyLoadingPreview() {
+    MaterialTheme {
+        LoginScreenBody(
+            uiState = LoginUiState(
+                username = "testuser",
+                password = "password123",
+                isLoading = true
+            ),
+            onEvent = {},
+            onNavigateToRegister = {}
+        )
+    }
 }

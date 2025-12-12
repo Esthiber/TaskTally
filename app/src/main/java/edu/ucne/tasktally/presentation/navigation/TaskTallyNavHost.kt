@@ -9,12 +9,13 @@ import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.toRoute
-import edu.ucne.tasktally.presentation.mentor.perfil.PerfilScreen
-import edu.ucne.tasktally.presentation.auth.LoginScreen
-import edu.ucne.tasktally.presentation.auth.LoginViewModel
-import edu.ucne.tasktally.presentation.auth.RegisterScreen
+import edu.ucne.tasktally.presentation.auth.login.LoginScreen
+import edu.ucne.tasktally.presentation.auth.login.LoginUiEvent
+import edu.ucne.tasktally.presentation.auth.login.LoginViewModel
+import edu.ucne.tasktally.presentation.auth.register.RegisterScreen
 import edu.ucne.tasktally.presentation.gema.tareas.GemaTareasScreen
 import edu.ucne.tasktally.presentation.gema.tienda.GemaTiendaScreen
+import edu.ucne.tasktally.presentation.mentor.perfil.PerfilScreen
 import edu.ucne.tasktally.presentation.mentor.recompensas.CreateRecompensaScreen
 import edu.ucne.tasktally.presentation.mentor.recompensas.list.ListRecompensaScreen
 import edu.ucne.tasktally.presentation.mentor.tareas.CreateTareaScreen
@@ -38,7 +39,7 @@ fun TaskTallyNavHost(
                 "mentor" -> Screen.MentorTareas
                 "gema" -> if (currentUser.hasZoneAccess) Screen.Tareas else Screen.ZoneAccess
                 else -> {
-                    loginViewModel.onLogoutClick()
+                    loginViewModel.onEvent(LoginUiEvent.LogoutClick)
                     Screen.Login
                 }
             }
@@ -76,8 +77,8 @@ fun TaskTallyNavHost(
 
         composable<Screen.ZoneAccess> {
             ZoneAccessScreen(
-                onZoneAccessGranted = { loginViewModel.refreshZoneAccess() },
-                onLogout = { loginViewModel.onLogoutClick() }
+                onZoneAccessGranted = { loginViewModel.onEvent(LoginUiEvent.RefreshZoneAccess) },
+                onLogout = { loginViewModel.onEvent(LoginUiEvent.LogoutClick) }
             )
         }
 
@@ -100,7 +101,7 @@ fun TaskTallyNavHost(
                 requiredRole = "gema"
             ) {
                 PerfilScreen(
-                    onLogout = { loginViewModel.onLogoutClick() },
+                    onLogout = { loginViewModel.onEvent(LoginUiEvent.LogoutClick) },
                     onNavigateToZona = {
                         navHostController.navigate(Screen.Zona)
                     }
@@ -194,7 +195,7 @@ fun TaskTallyNavHost(
 
         composable<Screen.MentorPerfil> {
             PerfilScreen(
-                onLogout = { loginViewModel.onLogoutClick() },
+                onLogout = { loginViewModel.onEvent(LoginUiEvent.LogoutClick) },
                 onNavigateToZona = {
                     navHostController.navigate(Screen.Zona)
                 }
