@@ -3,6 +3,7 @@ package edu.ucne.tasktally.presentation.gema.tareas
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
+import edu.ucne.tasktally.data.remote.Resource
 import edu.ucne.tasktally.domain.usecases.auth.GetCurrentUserUseCase
 import edu.ucne.tasktally.domain.usecases.gema.GetTareasRemoteUseCase
 import edu.ucne.tasktally.domain.usecases.gema.tareas.CompletarTareaUseCase
@@ -39,7 +40,7 @@ class GemaTareasViewModel @Inject constructor(
                 val gemaId = userData.gemaId
                 if (gemaId != null && gemaId != _uiState.value.gemaId) {
                     _uiState.update { it.copy(gemaId = gemaId) }
-                    // Primero intentar cargar desde la API
+
                     loadTareasFromRemote()
                 } else if (gemaId == null) {
                     _uiState.update {
@@ -92,14 +93,14 @@ class GemaTareasViewModel @Inject constructor(
         viewModelScope.launch {
             _uiState.update { it.copy(isLoading = true, errorMessage = null) }
             try {
-                // Intentar cargar tareas desde la API
                 val result = getTareasRemoteUseCase(_uiState.value.gemaId)
 
                 when (result) {
-                    is edu.ucne.tasktally.data.remote.Resource.Success -> {
+                    is Resource.Success -> {
                         loadTareas()
                     }
-                    is edu.ucne.tasktally.data.remote.Resource.Error -> {
+
+                    is Resource.Error -> {
                         _uiState.update {
                             it.copy(
                                 errorMessage = "No se pudo sincronizar con el servidor: ${result.message}. Mostrando datos locales."
@@ -107,7 +108,11 @@ class GemaTareasViewModel @Inject constructor(
                         }
                         loadTareas()
                     }
-                    is edu.ucne.tasktally.data.remote.Resource.Loading -> {
+
+                    is Resource.Loading -> {
+                        _uiState.update {
+                            it.copy(isLoading = true)
+                        }
                     }
                 }
             } catch (e: Exception) {
