@@ -89,6 +89,11 @@ class GemaTiendaViewModel @Inject constructor(
                 )
                 _uiState.update { it.copy(puntosDisponibles = puntos) }
             } catch (e: Exception) {
+                _uiState.update {
+                    it.copy(
+                        errorMessage = "Error al cargar puntos disponibles: ${e.message}"
+                    )
+                }
             }
         }
     }
@@ -137,6 +142,9 @@ class GemaTiendaViewModel @Inject constructor(
                         loadPuntosDisponibles()
                     }
                     is Resource.Loading -> {
+                        _uiState.update {
+                            it.copy(isLoading = true)
+                        }
                     }
                 }
             } catch (e: Exception) {
