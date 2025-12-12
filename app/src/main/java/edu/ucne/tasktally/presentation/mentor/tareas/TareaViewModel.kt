@@ -11,8 +11,8 @@ import edu.ucne.tasktally.domain.usecases.mentor.tarea.UpdateTareaMentorLocalUse
 import edu.ucne.tasktally.domain.usecases.sync.TriggerSyncUseCase
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import javax.inject.Inject
@@ -52,6 +52,19 @@ class TareaViewModel @Inject constructor(
             is TareaUiEvent.OnPuntosChange ->
                 _state.update { it.copy(puntos = event.value, puntosError = null) }
 
+            is TareaUiEvent.OnRepetirChange ->
+                _state.update { it.copy(repetir = event.value, repetirError = null) }
+
+            is TareaUiEvent.OnDiaToggle -> {
+                val currentDias = _state.value.dias.toMutableList()
+                if (currentDias.contains(event.dia)) {
+                    currentDias.remove(event.dia)
+                } else {
+                    currentDias.add(event.dia)
+                }
+                _state.update { it.copy(dias = currentDias, diasError = null) }
+            }
+
             TareaUiEvent.OnShowImagePicker ->
                 _state.update { it.copy(showImagePicker = true) }
 
@@ -73,12 +86,15 @@ class TareaViewModel @Inject constructor(
                 val tarea = getTareaByIdUseCase(id)
 
                 if (tarea != null) {
+                    val diasList = tarea.dias?.split(",")?.map { it.trim() } ?: emptyList()
                     _state.update {
                         it.copy(
                             tareaId = tarea.tareaId,
                             titulo = tarea.titulo,
                             descripcion = tarea.descripcion,
                             puntos = tarea.puntos.toString(),
+                            repetir = tarea.repetir.toString(),
+                            dias = diasList,
                             imgVector = tarea.nombreImgVector,
                             isLoading = false
                         )
@@ -131,8 +147,8 @@ class TareaViewModel @Inject constructor(
                 puntos = st.puntos.toInt(),
                 nombreImgVector = st.imgVector,
                 isPendingCreate = true,
-                repetir = 1, // TODO agregar campo
-                dias = "Lun", // TODO agregar campo
+                repetir = st.repetir.toIntOrNull() ?: 1,
+                dias = st.dias.joinToString(","),
             )
 
             createTareaMentorLocalUseCase(tarea)
@@ -163,8 +179,8 @@ class TareaViewModel @Inject constructor(
                 titulo = st.titulo.trim(),
                 descripcion = st.descripcion.trim(),
                 puntos = st.puntos.toInt(),
-                repetir = 0, // TODO agregar campo
-                dias = "Lun", // TODO agregar campo",
+                repetir = st.repetir.toIntOrNull() ?: 1,
+                dias = st.dias.joinToString(","),
                 nombreImgVector = st.imgVector,
                 isPendingUpdate = true,
                 isPendingCreate = false
@@ -193,6 +209,14 @@ class TareaViewModel @Inject constructor(
         }
         if (_state.value.puntos.toIntOrNull() == null || _state.value.puntos.toInt() <= 0) {
             _state.update { it.copy(puntosError = "Puntos inválidos") }
+            ok = false
+        }
+        if (_state.value.repetir.toIntOrNull() == null || _state.value.repetir.toInt() <= 0) {
+            _state.update { it.copy(repetirError = "Debe repetirse al menos 1 vez") }
+            ok = false
+        }
+        if (_state.value.dias.isEmpty()) {
+            _state.update { it.copy(diasError = "Selecciona al menos un día") }
             ok = false
         }
         return ok
