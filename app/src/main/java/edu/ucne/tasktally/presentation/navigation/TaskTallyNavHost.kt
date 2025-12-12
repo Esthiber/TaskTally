@@ -20,6 +20,7 @@ import edu.ucne.tasktally.presentation.mentor.recompensas.CreateRecompensaScreen
 import edu.ucne.tasktally.presentation.mentor.recompensas.list.ListRecompensaScreen
 import edu.ucne.tasktally.presentation.mentor.tareas.CreateTareaScreen
 import edu.ucne.tasktally.presentation.mentor.tareas.list.ListTareaScreen
+import edu.ucne.tasktally.presentation.zona.ZonaScreen
 import edu.ucne.tasktally.presentation.zona.ZoneAccessScreen
 
 @Composable
@@ -110,13 +111,7 @@ fun TaskTallyNavHost(
         }
 
         composable<Screen.Zona> {
-            val user = currentUser.currentUser
-            if (user != null) {
-                edu.ucne.tasktally.presentation.zona.ZonaScreen(
-                    userId = (user.gemaId ?: user.mentorId)?.toString() ?: "",
-                    isMentor = user.role == "mentor"
-                )
-            }
+            ZonaScreen()
         }
 
         composable<Screen.MentorTareas> {

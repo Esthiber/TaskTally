@@ -1,7 +1,7 @@
 package edu.ucne.tasktally.presentation.zona
 
 sealed interface ZonaUiEvent {
-    data class LoadZona(val userId: String, val isMentor: Boolean) : ZonaUiEvent
+    object LoadZona : ZonaUiEvent
 
     data class OnZonaNameChange(val name: String) : ZonaUiEvent
     object StartEditingName : ZonaUiEvent

@@ -30,7 +30,7 @@ class ZonaViewModel @Inject constructor(
 
     fun onEvent(event: ZonaUiEvent) {
         when (event) {
-            is ZonaUiEvent.LoadZona -> loadZona(event.userId, event.isMentor)
+            is ZonaUiEvent.LoadZona -> loadZona()
             is ZonaUiEvent.OnZonaNameChange -> updateZonaName(event.name)
             is ZonaUiEvent.StartEditingName -> startEditingName()
             is ZonaUiEvent.SaveZonaName -> saveZonaName()
@@ -80,22 +80,24 @@ class ZonaViewModel @Inject constructor(
     private fun refreshData() {
         val currentState = _state.value
         if (currentState.currentUserId != null) {
-            loadZona(currentState.currentUserId, currentState.isMentor)
+            loadZona()
         }
     }
 
-    private fun loadZona(userId: String, isMentor: Boolean) = viewModelScope.launch {
+    private fun loadZona() = viewModelScope.launch {
+        val currentUser = getCurrentUserUseCase().first()
         _state.update {
             it.copy(
                 isLoading = true,
-                currentUserId = userId,
-                isMentor = isMentor
+                currentUserId = currentUser.userId.toString(),
+                isMentor = currentUser.role == "mentor"
             )
         }
 
         try {
-            if (isMentor) {
-                val mentorId = userId.toIntOrNull()
+            if (_state.value.isMentor) {
+                val currentUser = getCurrentUserUseCase().first()
+                val mentorId = currentUser.mentorId
                 if (mentorId == null) {
                     _state.update {
                         it.copy(
@@ -127,7 +129,8 @@ class ZonaViewModel @Inject constructor(
                     )
                 }
             } else {
-                val gemaId = userId.toIntOrNull()
+                val user = getCurrentUserUseCase().first()
+                val gemaId = user.gemaId
                 if (gemaId == null) {
                     _state.update {
                         it.copy(
@@ -225,7 +228,7 @@ class ZonaViewModel @Inject constructor(
 
         try {
             updateZoneCodeUseCase(zona.zonaId, mentorId)
-            loadZona(currentState.currentUserId, currentState.isMentor)
+            loadZona()
             _state.update {
                 it.copy(
                     isLoading = false,
