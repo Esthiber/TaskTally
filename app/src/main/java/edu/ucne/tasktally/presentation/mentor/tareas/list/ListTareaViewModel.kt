@@ -9,14 +9,12 @@ import edu.ucne.tasktally.domain.usecases.mentor.GetTareasRecompensasMentorRemot
 import edu.ucne.tasktally.domain.usecases.mentor.tarea.DeleteTareaMentorUseCase
 import edu.ucne.tasktally.domain.usecases.mentor.tarea.ObserveTareasByMentorIdLocalUseCase
 import edu.ucne.tasktally.domain.usecases.sync.TriggerSyncUseCase
-import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.withContext
 import javax.inject.Inject
 
 @HiltViewModel
@@ -37,12 +35,11 @@ class ListTareaViewModel @Inject constructor(
 
     private fun loadInitialData() {
         viewModelScope.launch {
-            val userData = withContext(Dispatchers.IO) {
-                getCurrentUserUseCase().first()
+            getCurrentUserUseCase().first().let { userData ->
+                val username = userData.username ?: "Mentor"
+                _state.update { it.copy(mentorName = username) }
+                onEvent(ListTareaUiEvent.Load)
             }
-            val username = userData.username ?: "Mentor"
-            _state.update { it.copy(mentorName = username) }
-            onEvent(ListTareaUiEvent.Load)
         }
     }
 
@@ -74,42 +71,44 @@ class ListTareaViewModel @Inject constructor(
             _state.update { it.copy(isLoading = true, error = null) }
 
             try {
-                val userData = withContext(Dispatchers.IO) {
-                    getCurrentUserUseCase().first()
-                }
+                val userData = getCurrentUserUseCase().first()
                 val mentorId = userData.mentorId
 
                 if (mentorId == null) {
-                    _state.update { it.copy(isLoading = false, error = "No se encontró ID mentor") }
+                    _state.update {
+                        it.copy(
+                            isLoading = false,
+                            error = "No se encontró el ID del mentor"
+                        )
+                    }
                     return@launch
                 }
 
-                val syncResult = withContext(Dispatchers.IO) {
-                    observeAllUseCaseRemote(mentorId = mentorId)
-                }
+                val syncResult = observeAllUseCaseRemote(mentorId = mentorId)
 
-                withContext(Dispatchers.IO) {
-                    observeTareasByMentorIdLocalUseCase(mentorId).collect { tareasMentor ->
-                        val (message, error) = when (syncResult) {
-                            is Resource.Success -> {
-                                Pair("Datos sincronizados correctamente", null)
-                            }
-                            is Resource.Error -> {
-                                Pair(null, "Error de sincronización: ${syncResult.message}. Mostrando datos locales.")
-                            }
-                            else -> Pair(null, null)
+                observeTareasByMentorIdLocalUseCase(mentorId).collect { tareasMentor ->
+                    val (message, error) = when (syncResult) {
+                        is Resource.Success -> {
+                            Pair("Datos sincronizados correctamente", null)
                         }
 
-                        withContext(Dispatchers.Main) {
-                            _state.update {
-                                it.copy(
-                                    isLoading = false,
-                                    tareas = tareasMentor,
-                                    message = message,
-                                    error = error
-                                )
-                            }
+                        is Resource.Error -> {
+                            Pair(
+                                null,
+                                "Error de sincronización: ${syncResult.message}. Mostrando datos locales."
+                            )
                         }
+
+                        else -> Pair(null, null)
+                    }
+
+                    _state.update {
+                        it.copy(
+                            isLoading = false,
+                            tareas = tareasMentor,
+                            message = message,
+                            error = error
+                        )
                     }
                 }
             } catch (e: Exception) {
@@ -130,15 +129,13 @@ class ListTareaViewModel @Inject constructor(
             _state.update { it.copy(isDeleting = true) }
 
             try {
-                withContext(Dispatchers.IO) {
-                    deleteTareaMentorUseCase(tarea)
-                    triggerSyncUseCase()
-                }
+                deleteTareaMentorUseCase(tarea)
+                triggerSyncUseCase()
                 _state.update {
                     it.copy(
                         isDeleting = false,
                         tareaToDelete = null,
-                        message = "Tarea eliminada y sincronizada correctamente"
+                        message = "Tarea eliminada correctamente"
                     )
                 }
             } catch (e: Exception) {
