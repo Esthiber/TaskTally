@@ -8,14 +8,15 @@ import edu.ucne.tasktally.domain.usecases.mentor.GetTareasRecompensasMentorRemot
 import edu.ucne.tasktally.domain.usecases.mentor.recompensa.DeleteRecompensaMentorLocalUseCase
 import edu.ucne.tasktally.domain.usecases.mentor.recompensa.ObserveRecompensasByMentorIdLocalUseCase
 import edu.ucne.tasktally.domain.usecases.sync.TriggerSyncUseCase
-import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.withContext
+// Eliminamos importaciones innecesarias de Dispatchers y withContext
+// import kotlinx.coroutines.Dispatchers
+// import kotlinx.coroutines.withContext
 import javax.inject.Inject
 
 @HiltViewModel
@@ -36,9 +37,7 @@ class ListRecompensaViewModel @Inject constructor(
 
     private fun loadInitialData() {
         viewModelScope.launch {
-            withContext(Dispatchers.IO) {
-                getCurrentUserUseCase().first()
-            }.let { userData ->
+            getCurrentUserUseCase().first().let { userData ->
                 val username = userData.username ?: "Mentor"
                 _state.update { it.copy(mentorName = username) }
                 onEvent(ListRecompensaUiEvent.Load)
@@ -71,9 +70,7 @@ class ListRecompensaViewModel @Inject constructor(
             _state.update { it.copy(isLoading = true, error = null) }
 
             try {
-                val userData = withContext(Dispatchers.IO) {
-                    getCurrentUserUseCase().first()
-                }
+                val userData = getCurrentUserUseCase().first()
                 val mentorId = userData.mentorId
 
                 if (mentorId == null) {
@@ -86,32 +83,31 @@ class ListRecompensaViewModel @Inject constructor(
                     return@launch
                 }
 
-                val syncResult = withContext(Dispatchers.IO) {
-                    getTareasRecompensasMentorRemoteUseCase(mentorId = mentorId)
-                }
+                val syncResult = getTareasRecompensasMentorRemoteUseCase(mentorId = mentorId)
 
-                withContext(Dispatchers.IO) {
-                    observeRecompensasByMentorIdUseCase(mentorId).collect { recompensasMentor ->
-                        val (message, error) = when (syncResult) {
-                            is edu.ucne.tasktally.data.remote.Resource.Success -> {
-                                Pair("Datos sincronizados correctamente", null)
-                            }
-                            is edu.ucne.tasktally.data.remote.Resource.Error -> {
-                                Pair(null, "Error de sincronización: ${syncResult.message}. Mostrando datos locales.")
-                            }
-                            else -> Pair(null, null)
+                observeRecompensasByMentorIdUseCase(mentorId).collect { recompensasMentor ->
+                    val (message, error) = when (syncResult) {
+                        is edu.ucne.tasktally.data.remote.Resource.Success -> {
+                            Pair("Datos sincronizados correctamente", null)
                         }
 
-                        withContext(Dispatchers.Main) {
-                            _state.update {
-                                it.copy(
-                                    isLoading = false,
-                                    recompensas = recompensasMentor,
-                                    message = message,
-                                    error = error
-                                )
-                            }
+                        is edu.ucne.tasktally.data.remote.Resource.Error -> {
+                            Pair(
+                                null,
+                                "Error de sincronización: ${syncResult.message}. Mostrando datos locales."
+                            )
                         }
+
+                        else -> Pair(null, null)
+                    }
+
+                    _state.update {
+                        it.copy(
+                            isLoading = false,
+                            recompensas = recompensasMentor,
+                            message = message,
+                            error = error
+                        )
                     }
                 }
             } catch (e: Exception) {

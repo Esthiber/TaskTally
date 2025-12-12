@@ -14,24 +14,23 @@ import javax.inject.Singleton
 
 @Module
 @InstallIn(SingletonComponent::class)
-abstract class RepositoryModule {
+interface RepositoryModule {
 
     @Binds
     @Singleton
-    abstract fun bindGemaRepository(
+    fun bindGemaRepository(
         impl: GemaRepositoryImpl
     ): GemaRepository
 
     @Binds
     @Singleton
-    abstract fun bindMentorRepository(
+    fun bindMentorRepository(
         impl: MentorRepositoryImpl
     ): MentorRepository
 
     @Binds
     @Singleton
-    abstract fun bindZonaRepository(
+    fun bindZonaRepository(
         impl: ZonaRepositoryImpl
     ): ZonaRepository
-
 }

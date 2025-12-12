@@ -1,7 +1,17 @@
 package edu.ucne.tasktally.presentation.gema.tienda
 
 import androidx.compose.foundation.background
-import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.itemsIndexed
@@ -9,8 +19,25 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Refresh
 import androidx.compose.material.icons.filled.ShoppingCart
 import androidx.compose.material.icons.filled.Star
-import androidx.compose.material3.*
-import androidx.compose.runtime.*
+import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.Button
+import androidx.compose.material3.Card
+import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Scaffold
+import androidx.compose.material3.SnackbarDuration
+import androidx.compose.material3.SnackbarHost
+import androidx.compose.material3.SnackbarHostState
+import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
+import androidx.compose.material3.TopAppBar
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
@@ -21,6 +48,7 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import edu.ucne.tasktally.domain.models.RecompensaGema
 import edu.ucne.tasktally.presentation.componentes.CircularLoadingIndicator
 import edu.ucne.tasktally.presentation.componentes.RecompensaCard.GemaRecompensaCard
+import edu.ucne.tasktally.presentation.componentes.RecompensaCard.RecompensaCardState
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -192,15 +220,15 @@ private fun RecompensasGrid(
         itemsIndexed(
             items = recompensas,
             key = { _, recompensa -> recompensa.recompensaId }
-        ) { index, recompensa ->
+        ) { _, recompensa ->
             GemaRecompensaCard(
-                numeroRecompensa = "Recompensa #${index + 1}",
-                titulo = recompensa.titulo,
-                descripcion = recompensa.descripcion,
-                precio = recompensa.precio,
-                imageName = recompensa.nombreImgVector,
-                puedeComprar = puntosDisponibles >= recompensa.precio,
-                isProcessing = processingRecompensaId == recompensa.recompensaId,
+                state = RecompensaCardState(
+                    titulo = recompensa.titulo,
+                    precio = recompensa.precio,
+                    imageName = recompensa.nombreImgVector,
+                    puedeComprar = puntosDisponibles >= recompensa.precio,
+                    isProcessing = processingRecompensaId == recompensa.recompensaId
+                ),
                 onCanjearClick = { onCanjearClick(recompensa) }
             )
         }

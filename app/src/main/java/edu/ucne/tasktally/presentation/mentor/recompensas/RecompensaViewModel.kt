@@ -7,7 +7,6 @@ import edu.ucne.tasktally.domain.models.RecompensaMentor
 import edu.ucne.tasktally.domain.usecases.auth.GetCurrentUserUseCase
 import edu.ucne.tasktally.domain.usecases.mentor.recompensa.CreateRecompensaMentorLocalUseCase
 import edu.ucne.tasktally.domain.usecases.mentor.recompensa.GetRecompensaByIdLocalUseCase
-import edu.ucne.tasktally.domain.usecases.mentor.recompensa.ObserveRecompensasByMentorIdLocalUseCase
 import edu.ucne.tasktally.domain.usecases.mentor.recompensa.UpdateRecompensaMentorUseCase
 import edu.ucne.tasktally.domain.usecases.sync.TriggerSyncUseCase
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -21,7 +20,6 @@ import javax.inject.Inject
 @HiltViewModel
 class RecompensaViewModel @Inject constructor(
     private val getRecompensaByIdLocalUseCase: GetRecompensaByIdLocalUseCase,
-    private val observeRecompensasMentorUseCase: ObserveRecompensasByMentorIdLocalUseCase,
     private val createRecompensaMentorLocalUseCase: CreateRecompensaMentorLocalUseCase,
     private val updateRecompensaMentorUseCase: UpdateRecompensaMentorUseCase,
     private val getCurrentUserUseCase: GetCurrentUserUseCase,
@@ -116,16 +114,16 @@ class RecompensaViewModel @Inject constructor(
             val st = _state.value
 
             if (st.isEditing && st.recompensaId != null) {
-                updateRecompensa(mentorId, st)
+                updateRecompensa(st)
                 triggerSyncUseCase()
             } else {
-                createRecompensa(mentorId, st)
+                createRecompensa(st)
                 triggerSyncUseCase()
             }
         }
     }
 
-    private suspend fun createRecompensa(mentorId: Int, st: RecompensaUiState) {
+    private suspend fun createRecompensa(st: RecompensaUiState) {
         try {
             val recompensa = RecompensaMentor(
                 titulo = st.titulo.trim(),
@@ -150,7 +148,7 @@ class RecompensaViewModel @Inject constructor(
         }
     }
 
-    private suspend fun updateRecompensa(mentorId: Int, st: RecompensaUiState) {
+    private suspend fun updateRecompensa(st: RecompensaUiState) {
         try {
 
             val existingRecompensa = getRecompensaByIdLocalUseCase(st.recompensaId!!)

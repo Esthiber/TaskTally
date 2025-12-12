@@ -3,11 +3,11 @@ package edu.ucne.tasktally.presentation.zona
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
-import edu.ucne.tasktally.domain.usecases.mentor.zona.UpdateZoneCodeRemoteUseCase
-import edu.ucne.tasktally.domain.usecases.zona.UpdateZoneNameLocalUseCase
 import edu.ucne.tasktally.domain.usecases.auth.GetCurrentUserUseCase
 import edu.ucne.tasktally.domain.usecases.gema.zona.GetGemaZonaByIdUseCase
 import edu.ucne.tasktally.domain.usecases.mentor.zona.GetMentorZonaByIdUseCase
+import edu.ucne.tasktally.domain.usecases.mentor.zona.UpdateZoneCodeRemoteUseCase
+import edu.ucne.tasktally.domain.usecases.zona.UpdateZoneNameLocalUseCase
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -30,73 +30,74 @@ class ZonaViewModel @Inject constructor(
 
     fun onEvent(event: ZonaUiEvent) {
         when (event) {
-            is ZonaUiEvent.LoadZona -> {
-                loadZona(event.userId, event.isMentor)
-            }
-
-            is ZonaUiEvent.OnZonaNameChange -> {
-                _state.update { it.copy(zonaName = event.name) }
-            }
-
-            is ZonaUiEvent.StartEditingName -> {
-                _state.update {
-                    it.copy(
-                        isEditingName = true,
-                        zonaName = it.zona?.nombre ?: ""
-                    )
-                }
-            }
-
-            is ZonaUiEvent.SaveZonaName -> {
-                saveZonaName()
-            }
-
-            is ZonaUiEvent.CancelEditingName -> {
-                _state.update {
-                    it.copy(
-                        isEditingName = false,
-                        zonaName = ""
-                    )
-                }
-            }
-
-            is ZonaUiEvent.GenerateNewJoinCode -> {
-                generateNewJoinCode()
-            }
-
-            is ZonaUiEvent.ShowJoinCodeDialog -> {
-                _state.update { it.copy(showJoinCodeDialog = true) }
-            }
-
-            is ZonaUiEvent.HideJoinCodeDialog -> {
-                _state.update { it.copy(showJoinCodeDialog = false) }
-            }
-
-            is ZonaUiEvent.UserMessageShown -> {
-                _state.update { it.copy(userMessage = null) }
-            }
-
-            is ZonaUiEvent.Refresh -> {
-                val currentState = _state.value
-                if (currentState.currentUserId != null) {
-                    loadZona(currentState.currentUserId, currentState.isMentor)
-                }
-            }
+            is ZonaUiEvent.LoadZona -> loadZona()
+            is ZonaUiEvent.OnZonaNameChange -> updateZonaName(event.name)
+            is ZonaUiEvent.StartEditingName -> startEditingName()
+            is ZonaUiEvent.SaveZonaName -> saveZonaName()
+            is ZonaUiEvent.CancelEditingName -> cancelEditingName()
+            is ZonaUiEvent.GenerateNewJoinCode -> generateNewJoinCode()
+            is ZonaUiEvent.ShowJoinCodeDialog -> showJoinCodeDialog()
+            is ZonaUiEvent.HideJoinCodeDialog -> hideJoinCodeDialog()
+            is ZonaUiEvent.UserMessageShown -> userMessageShown()
+            is ZonaUiEvent.Refresh -> refreshData()
         }
     }
 
-    private fun loadZona(userId: String, isMentor: Boolean) = viewModelScope.launch {
+    private fun updateZonaName(name: String) {
+        _state.update { it.copy(zonaName = name) }
+    }
+
+    private fun startEditingName() {
+        _state.update {
+            it.copy(
+                isEditingName = true,
+                zonaName = it.zona?.nombre ?: ""
+            )
+        }
+    }
+
+    private fun cancelEditingName() {
+        _state.update {
+            it.copy(
+                isEditingName = false,
+                zonaName = ""
+            )
+        }
+    }
+
+    private fun showJoinCodeDialog() {
+        _state.update { it.copy(showJoinCodeDialog = true) }
+    }
+
+    private fun hideJoinCodeDialog() {
+        _state.update { it.copy(showJoinCodeDialog = false) }
+    }
+
+    private fun userMessageShown() {
+        _state.update { it.copy(userMessage = null) }
+    }
+
+    private fun refreshData() {
+        val currentState = _state.value
+        if (currentState.currentUserId != null) {
+            loadZona()
+        }
+    }
+
+    private fun loadZona() = viewModelScope.launch {
+        val currentUser = getCurrentUserUseCase().first()
         _state.update {
             it.copy(
                 isLoading = true,
-                currentUserId = userId,
-                isMentor = isMentor
+                currentUserId = currentUser.userId.toString(),
+                isMentor = currentUser.role == "mentor"
             )
         }
 
         try {
-            if (isMentor) {
-                val mentorId = userId.toIntOrNull()
+            if (_state.value.isMentor) {
+                val currentUser = getCurrentUserUseCase().first()
+                val mentorId = currentUser.mentorId
                 if (mentorId == null) {
                     _state.update {
                         it.copy(
@@ -128,7 +129,8 @@ class ZonaViewModel @Inject constructor(
                     )
                 }
             } else {
-                val gemaId = userId.toIntOrNull()
+                val user = getCurrentUserUseCase().first()
+                val gemaId = user.gemaId
                 if (gemaId == null) {
                     _state.update {
                         it.copy(
@@ -226,7 +228,7 @@ class ZonaViewModel @Inject constructor(
 
         try {
             updateZoneCodeUseCase(zona.zonaId, mentorId)
-            loadZona(currentState.currentUserId, currentState.isMentor)
+            loadZona()
             _state.update {
                 it.copy(
                     isLoading = false,

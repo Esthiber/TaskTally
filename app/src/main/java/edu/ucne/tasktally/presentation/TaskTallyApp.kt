@@ -12,7 +12,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
-import edu.ucne.tasktally.presentation.auth.LoginViewModel
+import edu.ucne.tasktally.presentation.auth.login.LoginViewModel
 import edu.ucne.tasktally.presentation.componentes.BottomNavBar.BottomNavBar
 import edu.ucne.tasktally.presentation.navigation.Screen
 import edu.ucne.tasktally.presentation.navigation.TaskTallyNavHost

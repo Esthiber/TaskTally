@@ -3,7 +3,17 @@ package edu.ucne.tasktally.presentation.mentor.tareas
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.lazy.LazyRow
+import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
@@ -12,8 +22,18 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material.icons.filled.Check
-import androidx.compose.material.icons.filled.Upload
-import androidx.compose.material3.*
+import androidx.compose.material3.Button
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.FilterChip
+import androidx.compose.material3.FilterChipDefaults
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Text
+import androidx.compose.material3.TopAppBar
+import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -28,6 +48,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import edu.ucne.tasktally.presentation.componentes.CircularLoadingIndicator
 import edu.ucne.tasktally.presentation.componentes.ImagePickerBottomSheet
 import edu.ucne.tasktally.ui.theme.TaskTallyTheme
 
@@ -125,7 +146,7 @@ fun CreateTareaBody(
                 modifier = Modifier.fillMaxSize(),
                 contentAlignment = Alignment.Center
             ) {
-                CircularProgressIndicator()
+                CircularLoadingIndicator()
             }
         } else {
             Column(
@@ -184,6 +205,29 @@ fun CreateTareaBody(
                     shape = RoundedCornerShape(8.dp)
                 )
 
+                Spacer(modifier = Modifier.height(16.dp))
+
+                OutlinedTextField(
+                    value = state.repetir,
+                    onValueChange = { onEvent(TareaUiEvent.OnRepetirChange(it)) },
+                    label = { Text(text = "Número de repeticiones") },
+                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+                    isError = state.repetirError != null,
+                    supportingText = state.repetirError?.let {
+                        { Text(text = it, color = MaterialTheme.colorScheme.error) }
+                    },
+                    modifier = Modifier.fillMaxWidth(),
+                    shape = RoundedCornerShape(8.dp)
+                )
+
+                Spacer(modifier = Modifier.height(16.dp))
+
+                DaysSelectionSection(
+                    selectedDays = state.dias,
+                    onDayToggle = { onEvent(TareaUiEvent.OnDiaToggle(it)) },
+                    error = state.diasError
+                )
+
                 Spacer(modifier = Modifier.height(24.dp))
 
                 ImageSelectorBox(
@@ -202,9 +246,8 @@ fun CreateTareaBody(
                     shape = RoundedCornerShape(25.dp)
                 ) {
                     if (state.isLoading) {
-                        CircularProgressIndicator(
-                            modifier = Modifier.size(24.dp),
-                            color = MaterialTheme.colorScheme.onPrimary
+                        CircularLoadingIndicator(
+                            modifier = Modifier.size(24.dp)
                         )
                     } else {
                         Text(
@@ -253,6 +296,63 @@ private fun ImageSelectorBox(
     }
 }
 
+@Composable
+private fun DaysSelectionSection(
+    selectedDays: List<String>,
+    onDayToggle: (String) -> Unit,
+    error: String?
+) {
+    Column {
+        Text(
+            text = "Días de la semana",
+            style = MaterialTheme.typography.bodyMedium,
+            color = MaterialTheme.colorScheme.onSurface,
+            modifier = Modifier.padding(bottom = 8.dp)
+        )
+
+        val days = listOf("Lun", "Mar", "Mie", "Jue", "Vie", "Sab", "Dom")
+
+        LazyRow(
+            horizontalArrangement = Arrangement.spacedBy(8.dp),
+            modifier = Modifier.fillMaxWidth()
+        ) {
+            items(days) { day ->
+                DayChip(
+                    day = day,
+                    isSelected = selectedDays.contains(day),
+                    onClick = { onDayToggle(day) }
+                )
+            }
+        }
+
+        error?.let { errorMsg ->
+            Text(
+                text = errorMsg,
+                color = MaterialTheme.colorScheme.error,
+                style = MaterialTheme.typography.bodySmall,
+                modifier = Modifier.padding(top = 4.dp)
+            )
+        }
+    }
+}
+
+@Composable
+private fun DayChip(
+    day: String,
+    isSelected: Boolean,
+    onClick: () -> Unit
+) {
+    FilterChip(
+        onClick = onClick,
+        label = { Text(day) },
+        selected = isSelected,
+        colors = FilterChipDefaults.filterChipColors(
+            selectedContainerColor = MaterialTheme.colorScheme.primary,
+            selectedLabelColor = MaterialTheme.colorScheme.onPrimary
+        )
+    )
+}
+
 @Preview(showBackground = true)
 @Composable
 fun CreateTareaScreenPreview() {
@@ -275,6 +375,8 @@ fun CreateTareaScreenEditingPreview() {
                 titulo = "Arreglar la habitación",
                 descripcion = "Ordenar y limpiar todo",
                 puntos = "60",
+                repetir = "3",
+                dias = listOf("Lun", "Mie", "Vie"),
                 imgVector = "img0_yellow_tree"
             ),
             onEvent = {}

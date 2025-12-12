@@ -1,4 +1,4 @@
-package edu.ucne.tasktally.presentation.auth
+package edu.ucne.tasktally.presentation.auth.login
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
@@ -14,6 +14,7 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
@@ -47,12 +48,12 @@ class LoginViewModel @Inject constructor(
                             gemaId = userData.gemaId
                         )
 
-                        _uiState.value = _uiState.value.copy(currentUser = userUiState)
+                        _uiState.update { it.copy(currentUser = userUiState) }
 
                         if (userUiState.role == "gema" && userUiState.gemaId != null) {
                             checkZoneAccess(userUiState.gemaId,userData.zoneId ?: 0)
                         } else {
-                            _uiState.value = _uiState.value.copy(hasZoneAccess = true)
+                            _uiState.update { it.copy(hasZoneAccess = true) }
                         }
                     }
                 }
@@ -60,71 +61,98 @@ class LoginViewModel @Inject constructor(
         }
     }
 
-    fun onUsernameChanged(username: String) {
-        _uiState.value = _uiState.value.copy(username = username)
+    fun onEvent(event: LoginUiEvent) {
+        when (event) {
+            is LoginUiEvent.UsernameChanged -> {
+                _uiState.update { it.copy(username = event.username) }
+            }
+
+            is LoginUiEvent.PasswordChanged -> {
+                _uiState.update { it.copy(password = event.password) }
+            }
+
+            LoginUiEvent.LoginClick -> {
+                login()
+            }
+
+            LoginUiEvent.LogoutClick -> {
+                logout()
+            }
+
+            LoginUiEvent.ClearError -> {
+                _uiState.update { it.copy(error = null) }
+            }
+
+            LoginUiEvent.RefreshZoneAccess -> {
+                refreshZoneAccess()
+            }
+        }
     }
 
-    fun onPasswordChanged(password: String) {
-        _uiState.value = _uiState.value.copy(password = password)
-    }
-
-    fun onLoginClick() {
+    private fun login() {
         val currentState = _uiState.value
         if (currentState.isLoading) return
 
-        _uiState.value = currentState.copy(
-            isLoading = true,
-            error = null
-        )
+        _uiState.update {
+            it.copy(
+                isLoading = true,
+                error = null
+            )
+        }
 
         viewModelScope.launch {
             when (val result = loginUseCase(currentState.username, currentState.password)) {
                 is Resource.Success -> {
-                    _uiState.value = _uiState.value.copy(
-                        isLoading = false,
-                        error = null
-                    )
+                    _uiState.update {
+                        it.copy(
+                            isLoading = false,
+                            error = null
+                        )
+                    }
                 }
                 is Resource.Error -> {
-                    _uiState.value = _uiState.value.copy(
-                        isLoading = false,
-                        error = result.message
-                    )
+                    _uiState.update {
+                        it.copy(
+                            isLoading = false,
+                            error = result.message
+                        )
+                    }
                 }
                 is Resource.Loading -> {
-                    _uiState.value = _uiState.value.copy(isLoading = true)
+                    _uiState.update { it.copy(isLoading = true) }
                 }
             }
         }
     }
 
-    fun onLogoutClick() {
+    private fun logout() {
         viewModelScope.launch {
             logoutUseCase()
             _uiState.value = LoginUiState()
         }
     }
 
-    fun clearError() {
-        _uiState.value = _uiState.value.copy(error = null)
-    }
 
     private suspend fun checkZoneAccess(gemaId: Int, zoneId: Int) {
         when (val result = checkGemaZoneAccessUseCase(gemaId, zoneId)) {
             is Resource.Success -> {
-                _uiState.value = _uiState.value.copy(hasZoneAccess = result.data ?: false)
+                _uiState.update { it.copy(hasZoneAccess = result.data ?: false) }
             }
             is Resource.Error -> {
-                _uiState.value = _uiState.value.copy(
-                    hasZoneAccess = false,
-                    error = result.message
-                )
+                _uiState.update {
+                    it.copy(
+                        hasZoneAccess = false,
+                        error = result.message
+                    )
+                }
             }
-            is Resource.Loading -> {}
+            is Resource.Loading -> {
+                _uiState.update { it.copy(isLoading = true) }
+            }
         }
     }
 
-    fun refreshZoneAccess() {
+    private fun refreshZoneAccess() {
         viewModelScope.launch {
             val currentUser = _uiState.value.currentUser
             if (currentUser?.role == "gema" && currentUser.gemaId != null) {
@@ -138,20 +166,3 @@ class LoginViewModel @Inject constructor(
     }
 }
 
-data class LoginUiState(
-    val username: String = "",
-    val password: String = "",
-    val isLoading: Boolean = false,
-    val error: String? = null,
-    val currentUser: UserUiState? = null,
-    val hasZoneAccess: Boolean = false
-)
-
-data class UserUiState(
-    val userId: Int,
-    val username: String,
-    val email: String,
-    val role: String = "",
-    val mentorId: Int? = null,
-    val gemaId: Int? = null
-)

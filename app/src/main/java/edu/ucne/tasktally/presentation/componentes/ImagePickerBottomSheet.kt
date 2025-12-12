@@ -1,23 +1,31 @@
 package edu.ucne.tasktally.presentation.componentes
 
-import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.heightIn
+import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.items
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material3.*
-import androidx.compose.runtime.*
+import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.ModalBottomSheet
+import androidx.compose.material3.OutlinedButton
+import androidx.compose.material3.Text
+import androidx.compose.material3.rememberModalBottomSheetState
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-
-data class DrawableImage(
-    val resourceId: Int,
-    val name: String,
-    val displayName: String
-)
+import edu.ucne.tasktally.utils.ImageResourceUtils
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -28,41 +36,9 @@ fun ImagePickerBottomSheet(
 ) {
     val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
 
-    val availableImages = listOf(
-        //maticas
-        "img0_yellow_tree" to "🌳 Árbol amarillo",
-        "img1_purple_vines" to "🌿 Vines moradas",
-        "img2_little_bush" to "🌱 Arbusto",
-        "img3_little_plant" to "🪴 Plantita",
-        "img5_purple_flower" to "💐 Flor morada",
-        "img6_purple_plant" to "🪻 Planta morada",
-        "img8_green_leaves" to "🍃 Hojas verdes",
-        "img9_color_leaves" to "🍂 Hojas colores",
-
-        //objetos
-        "img10_batteries" to "🔋 Baterías",
-        "img11_boxes" to "📦 Cajas",
-        "img12_calendar" to "📅 Calendario",
-        "img13_chocolate" to "🍫 Chocolate",
-        "img14_clock" to "⏰ Reloj",
-        "img15_coffee_cup" to "☕ Café",
-        "img16_coffee_machine" to "☕ Cafetera",
-        "img16_dishes" to "🍽️ Platos",
-        "img17_doughnut" to "🍩 Dona",
-        "img18_doughnut" to "🍩 Dona 2",
-        "img19_files" to "📁 Archivos",
-        "img20_folder" to "📂 Carpeta",
-        "img21_food" to "🍱 Comida",
-        "img22_hamburguer" to "🍔 Hamburguesa",
-        "img23_ice_cream" to "🍦 Helado",
-        "img24_mobile_phone" to "📱 Teléfono",
-        "img25_notebook" to "📓 Cuaderno",
-        "img26_pancakes" to "🥞 Pancakes",
-        "img27_pizza" to "🍕 Pizza",
-        "img28_pizza_slice" to "🍕 Pizza slice",
-        "img29_pudding" to "🍮 Pudín",
-        "img30_recycle_bin" to "♻️ Reciclaje"
-    )
+    val availableImages = remember {
+        ImageResourceUtils.getAvailableImagePairs()
+    }
 
     ModalBottomSheet(
         onDismissRequest = onDismiss,

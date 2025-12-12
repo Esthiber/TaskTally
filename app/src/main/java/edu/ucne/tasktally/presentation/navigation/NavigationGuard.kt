@@ -6,7 +6,7 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
-import edu.ucne.tasktally.presentation.auth.LoginViewModel
+import edu.ucne.tasktally.presentation.auth.login.LoginViewModel
 
 @Composable
 fun NavigationGuard(

@@ -3,17 +3,33 @@ package edu.ucne.tasktally.presentation.mentor.recompensas
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Add
-import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material.icons.filled.Check
-import androidx.compose.material.icons.filled.Upload
-import androidx.compose.material3.*
+import androidx.compose.material3.Button
+import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Text
+import androidx.compose.material3.TopAppBar
+import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -40,6 +56,41 @@ fun CreateRecompensaScreen(
 ) {
     val state by viewModel.state.collectAsStateWithLifecycle()
 
+    RecompensaScreenSideEffects(
+        state = state,
+        recompensaId = recompensaId,
+        viewModel = viewModel,
+        onNavigateBack = onNavigateBack
+    )
+
+    RecompensaScreenImagePicker(
+        state = state,
+        viewModel = viewModel
+    )
+
+    Scaffold(
+        topBar = {
+            CreateRecompensaTopAppBar(
+                isEditing = state.isEditing,
+                onNavigateBack = onNavigateBack
+            )
+        }
+    ) { paddingValues ->
+        CreateRecompensaBody(
+            state = state,
+            onEvent = viewModel::onEvent,
+            modifier = Modifier.padding(paddingValues)
+        )
+    }
+}
+
+@Composable
+private fun RecompensaScreenSideEffects(
+    state: RecompensaUiState,
+    recompensaId: String?,
+    viewModel: RecompensaViewModel,
+    onNavigateBack: () -> Unit
+) {
     LaunchedEffect(recompensaId) {
         if (recompensaId != null) {
             viewModel.loadRecompensaParaEdicion(recompensaId)
@@ -64,7 +115,13 @@ fun CreateRecompensaScreen(
             viewModel.onMessageShown()
         }
     }
+}
 
+@Composable
+private fun RecompensaScreenImagePicker(
+    state: RecompensaUiState,
+    viewModel: RecompensaViewModel
+) {
     if (state.showImagePicker) {
         ImagePickerBottomSheet(
             onDismiss = { viewModel.onEvent(RecompensaUiEvent.OnDismissImagePicker) },
@@ -74,39 +131,36 @@ fun CreateRecompensaScreen(
             selectedImageName = state.imgVector
         )
     }
+}
 
-    Scaffold(
-        topBar = {
-            TopAppBar(
-                title = {
-                    Text(
-                        text = if (state.isEditing) "Editar recompensa" else "Crear recompensa",
-                        color = MaterialTheme.colorScheme.primary,
-                        fontSize = 20.sp,
-                        fontWeight = FontWeight.Medium
-                    )
-                },
-                navigationIcon = {
-                    IconButton(onClick = onNavigateBack) {
-                        Icon(
-                            Icons.Default.ArrowBack,
-                            contentDescription = "Volver",
-                            tint = MaterialTheme.colorScheme.primary
-                        )
-                    }
-                },
-                colors = TopAppBarDefaults.topAppBarColors(
-                    containerColor = MaterialTheme.colorScheme.surface
-                )
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+private fun CreateRecompensaTopAppBar(
+    isEditing: Boolean,
+    onNavigateBack: () -> Unit
+) {
+    TopAppBar(
+        title = {
+            Text(
+                text = if (isEditing) "Editar recompensa" else "Crear recompensa",
+                color = MaterialTheme.colorScheme.primary,
+                fontSize = 20.sp,
+                fontWeight = FontWeight.Medium
             )
-        }
-    ) { paddingValues ->
-        CreateRecompensaBody(
-            state = state,
-            onEvent = viewModel::onEvent,
-            modifier = Modifier.padding(paddingValues)
+        },
+        navigationIcon = {
+            IconButton(onClick = onNavigateBack) {
+                Icon(
+                    Icons.AutoMirrored.Filled.ArrowBack,
+                    contentDescription = "Volver",
+                    tint = MaterialTheme.colorScheme.primary
+                )
+            }
+        },
+        colors = TopAppBarDefaults.topAppBarColors(
+            containerColor = MaterialTheme.colorScheme.surface
         )
-    }
+    )
 }
 
 @Composable
@@ -241,12 +295,20 @@ private fun ImageSelectorBox(
     ) {
         if (selectedImage != null) {
             Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                Icon(Icons.Default.Check, contentDescription = null, tint = MaterialTheme.colorScheme.primary)
+                Icon(
+                    Icons.Default.Check,
+                    contentDescription = null,
+                    tint = MaterialTheme.colorScheme.primary
+                )
                 Text(selectedImage)
             }
         } else {
             Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                Icon(Icons.Default.Add, contentDescription = null, tint = MaterialTheme.colorScheme.primary)
+                Icon(
+                    Icons.Default.Add,
+                    contentDescription = null,
+                    tint = MaterialTheme.colorScheme.primary
+                )
                 Text("Selecciona una imagen")
             }
         }
